@@ -50,7 +50,7 @@ public class IconButton extends Button {
 
     @Override
     public void renderToolTip(MatrixStack stack, int mouseX, int mouseY) {
-        parent.renderTooltip(stack, this.getMessage(), mouseX, mouseY);
+        parent.postRenderTasks.add(() -> parent.renderTooltip(stack, this.getMessage(), mouseX, mouseY));
     }
 
     @Override

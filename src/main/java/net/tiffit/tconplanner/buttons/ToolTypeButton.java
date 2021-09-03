@@ -14,8 +14,8 @@ public class ToolTypeButton extends Button {
     public final int index;
     private final PlannerScreen parent;
 
-    public ToolTypeButton(int index, int x, int y, SlotInformation info, PlannerScreen parent) {
-        super(x, y, 18, 18, info.getItem().getDescription(), button -> parent.setSelectedTool(index));
+    public ToolTypeButton(int index, SlotInformation info, PlannerScreen parent) {
+        super(0, 0, 18, 18, info.getItem().getDescription(), button -> parent.setSelectedTool(index));
         this.info = info;
         this.index = index;
         this.parent = parent;
@@ -35,6 +35,6 @@ public class ToolTypeButton extends Button {
 
     @Override
     public void renderToolTip(MatrixStack stack, int mouseX, int mouseY) {
-        parent.renderItemTooltip(stack, info.getToolForRendering(), mouseX, mouseY);
+        parent.postRenderTasks.add(() -> parent.renderItemTooltip(stack, info.getToolForRendering(), mouseX, mouseY));
     }
 }

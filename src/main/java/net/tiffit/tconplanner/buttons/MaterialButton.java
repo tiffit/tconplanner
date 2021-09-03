@@ -34,6 +34,6 @@ public class MaterialButton extends Button {
 
     @Override
     public void renderToolTip(MatrixStack stack, int mouseX, int mouseY) {
-        parent.renderItemTooltip(stack, this.stack, mouseX, mouseY);
+        parent.postRenderTasks.add(() -> parent.renderItemTooltip(stack, this.stack, mouseX, mouseY));
     }
 }

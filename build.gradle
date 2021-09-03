@@ -136,8 +136,9 @@ dependencies {
 
     // These dependencies get remapped to your current MCP mappings
     // deobf 'com.mod-buildcraft:buildcraft:6.0.8:dev'
-    implementation fg.deobf('curse.maven:mantle-74924:3389377')
-    implementation fg.deobf('curse.maven:tinkersconstruct-74072:3412365')
+    implementation fg.deobf('curse.maven:mantle-74924:3439180')
+    implementation fg.deobf('curse.maven:tinkersconstruct-74072:3439200')
+    implementation fg.deobf('curse.maven:jei-238222:3438494')
 
     // For more info...
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html

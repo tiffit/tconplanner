@@ -7,15 +7,22 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.util.InputMappings;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.RecipeManager;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.text.StringTextComponent;
 import net.tiffit.tconplanner.buttons.*;
 import org.lwjgl.glfw.GLFW;
+import slimeknights.mantle.recipe.RecipeHelper;
 import slimeknights.tconstruct.library.materials.MaterialRegistry;
 import slimeknights.tconstruct.library.materials.definition.IMaterial;
 import slimeknights.tconstruct.library.materials.stats.IMaterialStats;
 import slimeknights.tconstruct.library.materials.stats.MaterialStatsId;
+import slimeknights.tconstruct.library.modifiers.ModifierId;
+import slimeknights.tconstruct.library.recipe.RecipeTypes;
+import slimeknights.tconstruct.library.recipe.modifiers.adding.IDisplayModifierRecipe;
+import slimeknights.tconstruct.library.tools.SlotType;
+import slimeknights.tconstruct.library.tools.nbt.ToolStack;
 import slimeknights.tconstruct.library.tools.part.IToolPart;
 import slimeknights.tconstruct.tables.client.SlotInformationLoader;
 import slimeknights.tconstruct.tables.client.inventory.library.slots.SlotInformation;
@@ -24,18 +31,20 @@ import slimeknights.tconstruct.tables.client.inventory.table.TinkerStationScreen
 
 import java.awt.*;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class PlannerScreen extends Screen {
 
     public static ResourceLocation TEXTURE = new ResourceLocation(TConPlanner.MODID, "textures/gui/planner.png");
-
+    private final HashMap<String, Object> cache = new HashMap<>();
+    public Deque<Runnable> postRenderTasks = new ArrayDeque<>();
     private final TinkerStationScreen child;
     private final List<SlotInformation> tools = new ArrayList<>();
+    private final List<IDisplayModifierRecipe> modifiers;
     private final PlannerData data;
+    private ToolStack resultStack;
     public Blueprint blueprint;
     public int selectedPart = 0;
     public int materialPage = 0;
@@ -59,6 +68,10 @@ public class PlannerScreen extends Screen {
         }catch (Exception ex){
             ex.printStackTrace();
         }
+        Set<ModifierId> modifierNameSet = new HashSet<>();
+        RecipeManager recipeManager = Minecraft.getInstance().level.getRecipeManager();
+        modifiers = RecipeHelper.getJEIRecipes(recipeManager, RecipeTypes.TINKER_STATION, IDisplayModifierRecipe.class)
+                .stream().filter(e -> modifierNameSet.add(e.getDisplayResult().getModifier().getRegistryName())).collect(Collectors.toList());
     }
 
     @Override
@@ -71,12 +84,27 @@ public class PlannerScreen extends Screen {
     }
 
     public void refresh(){
+        resultStack = null;
         buttons.clear();
         children.clear();
         int toolSpace = 20;
+        addButton(new BannerButton(left - 50 - 45, top, new StringTextComponent("Tools"), this));
+        PaginatedButtonGroup toolsGroup = new PaginatedButtonGroup(left - toolSpace * 5, top + 23, 18, 18, 5, 3, 2,"toolsgroup", this);
+        addButton(toolsGroup);
         for (int i = 0; i < tools.size(); i++) {
             SlotInformation info = tools.get(i);
-            addButton(new ToolTypeButton(i, left - toolSpace * 5 + (i % 5) * toolSpace, top + (i / 5) * toolSpace + 23, info, this));
+            toolsGroup.addChild(new ToolTypeButton(i, info, this));
+        }
+        toolsGroup.refresh();
+        if(data.saved.size() > 0) {
+            addButton(new BannerButton(left - 50 - 45, top + 15 + 18*4, new StringTextComponent("Bookmarked"), this));
+            PaginatedButtonGroup bookmarkGroup = new PaginatedButtonGroup(left - toolSpace * 5, top + 15 + 18*4 + 23, 18, 18, 5, 5, 2,"bookmarkedgroup", this);
+            addButton(bookmarkGroup);
+            for (int i = 0; i < data.saved.size(); i++) {
+                Blueprint bookmarked = data.saved.get(i);
+                bookmarkGroup.addChild(new BookmarkedButton(i, bookmarked, this));
+            }
+            bookmarkGroup.refresh();
         }
         if(blueprint != null){
             List<SlotPosition> positions = blueprint.toolSlotInfo.getPoints();
@@ -118,22 +146,19 @@ public class PlannerScreen extends Screen {
                 }
             }
             ItemStack result = blueprint.createOutput();
-            if(!result.isEmpty()) {
+            resultStack = result.isEmpty() ? null : ToolStack.from(result);
+            if(resultStack != null) {
                 addButton(new OutputToolButton(left + guiWidth - 34, top + 58, result, this));
                 boolean bookmarked = data.isBookmarked(blueprint);
                 addButton(new IconButton(left + guiWidth - 33, top + 88, 190 + (bookmarked ? 12 : 0), 78,
                         new StringTextComponent(bookmarked ? "Remove Bookmark" : "Bookmark Item"), this, e -> {if(bookmarked) unbookmarkCurrent(); else bookmarkCurrent();})
                         .withSound(bookmarked ? SoundEvents.UI_STONECUTTER_TAKE_RESULT : SoundEvents.BOOK_PAGE_TURN));
+                //IDisplayModifierRecipe.withModifiers(modifiers.get(0).)
             }
             addButton(new IconButton(left + guiWidth - 70, top + 88, 176, 104,
                     new StringTextComponent("Randomize Materials"), this, e -> randomize())
                     .withSound(SoundEvents.ENDERMAN_TELEPORT));
         }
-        for (int i = 0; i < data.saved.size(); i++) {
-            Blueprint bookmarked = data.saved.get(i);
-            addButton(new BookmarkedButton(i, left + guiWidth + 2 + (i % 5) * toolSpace, top + (i / 5) * toolSpace + 23, bookmarked, this));
-        }
-
     }
 
     @Override
@@ -141,12 +166,6 @@ public class PlannerScreen extends Screen {
         renderBackground(stack);
         bindTexture();
         this.blit(stack, left, top, 0, 0, guiWidth, guiHeight);
-        int sideCenter = (20*5)/2;
-        boolean hasBookmarks = data.saved.size() > 0;
-        this.blit(stack, left - sideCenter - 45, top, 0, 205, 90, 19);
-        if(hasBookmarks)this.blit(stack, left + guiWidth + sideCenter - 45, top, 0, 205, 90, 19);
-        drawCenteredString(stack, font, "Tools", left - sideCenter, top + 5, 0xff_90_90_ff);
-        if(hasBookmarks)drawCenteredString(stack, font, "Bookmarked", left + guiWidth + sideCenter, top + 5, 0xff_90_90_ff);
         if(blueprint != null) {
             RenderSystem.pushMatrix();
             RenderSystem.translated(left + partsOffsetX + 7, top + partsOffsetY + 22, -100);
@@ -163,11 +182,24 @@ public class PlannerScreen extends Screen {
             RenderSystem.enableBlend();
             this.blit(stack, left + boxX, top + boxY, boxX, boxY, boxL, boxL);
             RenderSystem.popMatrix();
+
+            if(resultStack != null){
+                int slotIndex = 0;
+                for (SlotType slotType : SlotType.getAllSlotTypes()) {
+                    int slots = resultStack.getFreeSlots(slotType);
+                    if(slots > 0) {
+                        drawCenteredString(stack, font, slots + "", left + 100 + slotIndex*30, top + 50, slotType.getColor().getValue() + 0xff_000000);
+                        slotIndex++;
+                    }
+                }
+            }
         }
         String title = blueprint == null ? "Select Tool" : blueprint.toolSlotInfo.getToolForRendering().getHoverName().getString();
         drawCenteredString(stack, font, title, left + guiWidth / 2, top + 7, 0xffffffff);
 
         super.render(stack, mouseX, mouseY, p_230430_4_);
+        Runnable task;
+        while((task = postRenderTasks.poll()) != null)task.run();
     }
 
     public void setSelectedTool(int index) {
@@ -263,6 +295,14 @@ public class PlannerScreen extends Screen {
         if(sorter == sort)sorter = null;
         else sorter = sort;
         refresh();
+    }
+
+    public <T> T getCacheValue(String key, T defaultVal){
+        return (T)cache.getOrDefault(key, defaultVal);
+    }
+
+    public void setCacheValue(String key, Object value){
+        cache.put(key, value);
     }
 
     @Override

@@ -18,8 +18,8 @@ public class BookmarkedButton extends Button {
     private final Blueprint blueprint;
     private boolean selected;
 
-    public BookmarkedButton(int index, int x, int y, Blueprint blueprint, PlannerScreen parent){
-        super(x, y, 18, 18, new StringTextComponent(""), button -> {
+    public BookmarkedButton(int index, Blueprint blueprint, PlannerScreen parent){
+        super(0, 0, 18, 18, new StringTextComponent(""), button -> {
             parent.blueprint = blueprint.clone();
             parent.setSelectedPart(-1);
             parent.refresh();
@@ -33,6 +33,7 @@ public class BookmarkedButton extends Button {
 
     @Override
     public void renderButton(MatrixStack stack, int mouseX, int mouseY, float p_230431_4_) {
+        RenderSystem.disableRescaleNormal();
         PlannerScreen.bindTexture();
         RenderSystem.enableBlend();
         parent.blit(stack, x, y, 213, 41 + (selected ? 18 : 0), 18, 18);
@@ -45,6 +46,6 @@ public class BookmarkedButton extends Button {
 
     @Override
     public void renderToolTip(MatrixStack stack, int mouseX, int mouseY) {
-        parent.renderItemTooltip(stack, this.stack, mouseX, mouseY);
+        parent.postRenderTasks.add(() -> parent.renderItemTooltip(stack, this.stack, mouseX, mouseY));
     }
 }
