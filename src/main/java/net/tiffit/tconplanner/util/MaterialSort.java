@@ -1,4 +1,4 @@
-package net.tiffit.tconplanner;
+package net.tiffit.tconplanner.util;
 
 import com.google.common.collect.Lists;
 import slimeknights.tconstruct.library.materials.IMaterialRegistry;

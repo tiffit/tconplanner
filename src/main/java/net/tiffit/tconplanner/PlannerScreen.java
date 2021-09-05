@@ -10,17 +10,32 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.RecipeManager;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvents;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.Style;
+import net.minecraft.util.text.TextFormatting;
 import net.tiffit.tconplanner.buttons.*;
+import net.tiffit.tconplanner.buttons.modifiers.ModLevelButton;
+import net.tiffit.tconplanner.buttons.modifiers.ModifierSelectButton;
+import net.tiffit.tconplanner.data.Blueprint;
+import net.tiffit.tconplanner.data.ModifierInfo;
+import net.tiffit.tconplanner.data.PlannerData;
+import net.tiffit.tconplanner.util.DummyTinkersStationInventory;
+import net.tiffit.tconplanner.util.MaterialSort;
+import net.tiffit.tconplanner.util.ModifierStateEnum;
+import net.tiffit.tconplanner.util.TextPosEnum;
 import org.lwjgl.glfw.GLFW;
 import slimeknights.mantle.recipe.RecipeHelper;
 import slimeknights.tconstruct.library.materials.MaterialRegistry;
 import slimeknights.tconstruct.library.materials.definition.IMaterial;
 import slimeknights.tconstruct.library.materials.stats.IMaterialStats;
 import slimeknights.tconstruct.library.materials.stats.MaterialStatsId;
+import slimeknights.tconstruct.library.modifiers.Modifier;
 import slimeknights.tconstruct.library.modifiers.ModifierId;
 import slimeknights.tconstruct.library.recipe.RecipeTypes;
 import slimeknights.tconstruct.library.recipe.modifiers.adding.IDisplayModifierRecipe;
+import slimeknights.tconstruct.library.recipe.tinkerstation.ITinkerStationRecipe;
+import slimeknights.tconstruct.library.recipe.tinkerstation.ValidatedResult;
 import slimeknights.tconstruct.library.tools.SlotType;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
 import slimeknights.tconstruct.library.tools.part.IToolPart;
@@ -44,11 +59,12 @@ public class PlannerScreen extends Screen {
     private final List<SlotInformation> tools = new ArrayList<>();
     private final List<IDisplayModifierRecipe> modifiers;
     private final PlannerData data;
-    private ToolStack resultStack;
+    public ToolStack resultStack;
     public Blueprint blueprint;
     public int selectedPart = 0;
     public int materialPage = 0;
     public MaterialSort<?> sorter;
+    public ModifierInfo selectedModifier;
     private int left, top, guiWidth, guiHeight;
 
     private static final int partsOffsetX = 13, partsOffsetY = 15;
@@ -68,10 +84,8 @@ public class PlannerScreen extends Screen {
         }catch (Exception ex){
             ex.printStackTrace();
         }
-        Set<ModifierId> modifierNameSet = new HashSet<>();
-        RecipeManager recipeManager = Minecraft.getInstance().level.getRecipeManager();
-        modifiers = RecipeHelper.getJEIRecipes(recipeManager, RecipeTypes.TINKER_STATION, IDisplayModifierRecipe.class)
-                .stream().filter(e -> modifierNameSet.add(e.getDisplayResult().getModifier().getRegistryName())).collect(Collectors.toList());
+
+        modifiers = getModifierRecipes();
     }
 
     @Override
@@ -84,21 +98,26 @@ public class PlannerScreen extends Screen {
     }
 
     public void refresh(){
+        // Reset screen
         resultStack = null;
         buttons.clear();
         children.clear();
+
+        // List of tool types
         int toolSpace = 20;
-        addButton(new BannerButton(left - 50 - 45, top, new StringTextComponent("Tools"), this));
-        PaginatedButtonGroup toolsGroup = new PaginatedButtonGroup(left - toolSpace * 5, top + 23, 18, 18, 5, 3, 2,"toolsgroup", this);
+        addButton(new BannerWidget(left - 95, top, new StringTextComponent("Tools"), this));
+        PaginatedButtonGroup<ToolTypeButton> toolsGroup = new PaginatedButtonGroup<>(left - toolSpace * 5, top + 23, 18, 18, 5, 3, 2,"toolsgroup", this);
         addButton(toolsGroup);
         for (int i = 0; i < tools.size(); i++) {
             SlotInformation info = tools.get(i);
             toolsGroup.addChild(new ToolTypeButton(i, info, this));
         }
         toolsGroup.refresh();
+
+        //List of bookmarked items
         if(data.saved.size() > 0) {
-            addButton(new BannerButton(left - 50 - 45, top + 15 + 18*4, new StringTextComponent("Bookmarked"), this));
-            PaginatedButtonGroup bookmarkGroup = new PaginatedButtonGroup(left - toolSpace * 5, top + 15 + 18*4 + 23, 18, 18, 5, 5, 2,"bookmarkedgroup", this);
+            addButton(new BannerWidget(left - 95, top + 15 + 18*4, new StringTextComponent("Bookmarked"), this));
+            PaginatedButtonGroup<BookmarkedButton> bookmarkGroup = new PaginatedButtonGroup<>(left - toolSpace * 5, top + 15 + 18*4 + 23, 18, 18, 5, 5, 2,"bookmarkedgroup", this);
             addButton(bookmarkGroup);
             for (int i = 0; i < data.saved.size(); i++) {
                 Blueprint bookmarked = data.saved.get(i);
@@ -106,14 +125,18 @@ public class PlannerScreen extends Screen {
             }
             bookmarkGroup.refresh();
         }
+        //Everything in here should only be added if there is a tool selected
         if(blueprint != null){
+            //Add the tool part buttons
             List<SlotPosition> positions = blueprint.toolSlotInfo.getPoints();
             for(int i = 0; i < blueprint.parts.length; i++){
                 SlotPosition pos = positions.get(i);
                 IToolPart part = blueprint.parts[i];
                 addButton(new ToolPartButton(i, left + pos.getX() + partsOffsetX, top + pos.getY() + partsOffsetY, part, blueprint.materials[i], this));
             }
+            //Everything in here should only be added if there is a tool part selected
             if(selectedPart != -1){
+                //Add material list for the tool part
                 IToolPart part = blueprint.parts[selectedPart];
                 List<IMaterial> usable = MaterialRegistry.getMaterials().stream().filter(part::canUseMaterial).collect(Collectors.toList());
                 MaterialStatsId statsId = part.getStatType();
@@ -127,13 +150,14 @@ public class PlannerScreen extends Screen {
                     if(blueprint.materials[selectedPart] == mat)data.selected = true;
                     addButton(data);
                 }
+                //Add material pagination buttons
                 MatPageButton leftPage = new MatPageButton(left + 6, top + guiHeight - 30, -1, this);
                 MatPageButton rightPage = new MatPageButton(left + guiWidth - 6 - 37, top + guiHeight - 30, 1, this);
                 leftPage.active = materialPage > 0;
                 rightPage.active = loopMax < usable.size();
                 addButton(leftPage);
                 addButton(rightPage);
-
+                //Add sorting buttons
                 Class<? extends IMaterialStats> statClass = MaterialRegistry.getClassForStat(part.getStatType());
                 if(statClass != null){
                     List<MaterialSort<?>> sorts = MaterialSort.MAP.getOrDefault(statClass, Lists.newArrayList());
@@ -145,6 +169,7 @@ public class PlannerScreen extends Screen {
                     }
                 }
             }
+            //Add buttons if there is fully finished tool
             ItemStack result = blueprint.createOutput();
             resultStack = result.isEmpty() ? null : ToolStack.from(result);
             if(resultStack != null) {
@@ -153,8 +178,59 @@ public class PlannerScreen extends Screen {
                 addButton(new IconButton(left + guiWidth - 33, top + 88, 190 + (bookmarked ? 12 : 0), 78,
                         new StringTextComponent(bookmarked ? "Remove Bookmark" : "Bookmark Item"), this, e -> {if(bookmarked) unbookmarkCurrent(); else bookmarkCurrent();})
                         .withSound(bookmarked ? SoundEvents.UI_STONECUTTER_TAKE_RESULT : SoundEvents.BOOK_PAGE_TURN));
-                //IDisplayModifierRecipe.withModifiers(modifiers.get(0).)
+                //Show available modifier slots
+                int slotIndex = 0;
+                for (SlotType slotType : SlotType.getAllSlotTypes()) {
+                    int slots = resultStack.getFreeSlots(slotType);
+                    if(slots > 0) {
+                        addButton(new TooltipTextWidget(left + 100 + slotIndex*15, top + 30,
+                                new StringTextComponent("" + slots),
+                                new StringTextComponent("Available ").append(slotType.getDisplayName()).append(" slots"), this)
+                                .withColor(slotType.getColor().getValue() + 0xff_00_00_00));
+                        slotIndex++;
+                    }
+                }
+
+                //Show modifier buttons
+                addButton(new BannerWidget(left + guiWidth + 7, top, new StringTextComponent("Modifiers"), this));
+                if(selectedModifier == null) {
+                    PaginatedButtonGroup<ModifierSelectButton> modifiersGroup = new PaginatedButtonGroup<>(left + guiWidth + 2, top + 23, 100, 18, 1, 9, 2, "modifiersgroup", this);
+                    addButton(modifiersGroup);
+                    for (IDisplayModifierRecipe recipe : modifiers) {
+                        if (recipe.getDisplayItems().get(0).stream().anyMatch(stack -> ToolStack.from(stack).getDefinition() == blueprint.toolDefinition)) {
+                            ITinkerStationRecipe tsrecipe = (ITinkerStationRecipe) recipe;
+                            ModifierStateEnum mstate = ModifierStateEnum.UNAVAILABLE;
+                            ITextComponent error = null;
+                            if (resultStack.getModifierLevel(recipe.getDisplayResult().getModifier()) != 0)
+                                mstate = ModifierStateEnum.APPLIED;
+                            else {
+                                ValidatedResult validatedResult = tsrecipe.getValidatedResult(new DummyTinkersStationInventory(result));
+                                if (validatedResult.isSuccess()) mstate = ModifierStateEnum.AVAILABLE;
+                                else error = validatedResult.getMessage();
+                            }
+                            modifiersGroup.addChild(new ModifierSelectButton(recipe, mstate, error, this));
+                        }
+                    }
+                    modifiersGroup.sort(Comparator.comparingInt(value -> value.state.ordinal()));
+                    modifiersGroup.refresh();
+                }else{
+                    Modifier modifier = selectedModifier.modifier;
+                    addButton(new TooltipTextWidget(left + guiWidth + 52, top + 25, TextPosEnum.CENTER, modifier.getDisplayName(resultStack.getModifierLevel(modifier)), modifier.getDescriptionList(), this));
+                    ITinkerStationRecipe tsrecipe = (ITinkerStationRecipe) selectedModifier.recipe;
+
+                    ModLevelButton addButton = new ModLevelButton(left + guiWidth + 50, top + 40, 1, this);
+                    ValidatedResult validatedResult = tsrecipe.getValidatedResult(new DummyTinkersStationInventory(result));
+                    if(!validatedResult.isSuccess()) addButton.disable(validatedResult.getMessage().copy().setStyle(Style.EMPTY.withColor(TextFormatting.RED)));
+                    addButton(addButton);
+
+                    ModLevelButton subtractButton = new ModLevelButton(left + guiWidth + 2, top + 40, -1, this);
+                    int toolBaseLevel = ToolStack.from(blueprint.createOutput(false)).getModifierLevel(modifier);
+                    int minLevel = Math.max(1, toolBaseLevel + 1);
+                    if(blueprint.modifiers.getOrDefault(selectedModifier, 1) + toolBaseLevel <= minLevel) subtractButton.disable(new StringTextComponent("Minimum level").setStyle(Style.EMPTY.withColor(TextFormatting.RED)));
+                    addButton(subtractButton);
+                }
             }
+            //Add randomize tool button
             addButton(new IconButton(left + guiWidth - 70, top + 88, 176, 104,
                     new StringTextComponent("Randomize Materials"), this, e -> randomize())
                     .withSound(SoundEvents.ENDERMAN_TELEPORT));
@@ -182,17 +258,6 @@ public class PlannerScreen extends Screen {
             RenderSystem.enableBlend();
             this.blit(stack, left + boxX, top + boxY, boxX, boxY, boxL, boxL);
             RenderSystem.popMatrix();
-
-            if(resultStack != null){
-                int slotIndex = 0;
-                for (SlotType slotType : SlotType.getAllSlotTypes()) {
-                    int slots = resultStack.getFreeSlots(slotType);
-                    if(slots > 0) {
-                        drawCenteredString(stack, font, slots + "", left + 100 + slotIndex*30, top + 50, slotType.getColor().getValue() + 0xff_000000);
-                        slotIndex++;
-                    }
-                }
-            }
         }
         String title = blueprint == null ? "Select Tool" : blueprint.toolSlotInfo.getToolForRendering().getHoverName().getString();
         drawCenteredString(stack, font, title, left + guiWidth / 2, top + 7, 0xffffffff);
@@ -203,9 +268,14 @@ public class PlannerScreen extends Screen {
     }
 
     public void setSelectedTool(int index) {
-        blueprint = new Blueprint(tools.get(index));
+        setBlueprint(new Blueprint(tools.get(index)));
+    }
+
+    public void setBlueprint(Blueprint bp){
+        blueprint = bp;
         this.materialPage = 0;
         sorter = null;
+        selectedModifier = null;
         setSelectedPart(-1);
         refresh();
     }
@@ -219,6 +289,7 @@ public class PlannerScreen extends Screen {
 
     public void setPart(IMaterial material){
         blueprint.materials[selectedPart] = material;
+        selectedModifier = null;
         refresh();
     }
 
@@ -287,6 +358,7 @@ public class PlannerScreen extends Screen {
                 List<IMaterial> usable = materials.stream().filter(part::canUseMaterial).collect(Collectors.toList());
                 if(usable.size() > 0)blueprint.materials[i] = usable.get(r.nextInt(usable.size()));
             }
+            selectedModifier = null;
             refresh();
         }
     }
@@ -308,5 +380,13 @@ public class PlannerScreen extends Screen {
     @Override
     public boolean isPauseScreen() {
         return false;
+    }
+
+    public static List<IDisplayModifierRecipe> getModifierRecipes(){
+        Set<ModifierId> modifierNameSet = new HashSet<>();
+        RecipeManager recipeManager = Minecraft.getInstance().level.getRecipeManager();
+        return RecipeHelper.getJEIRecipes(recipeManager, RecipeTypes.TINKER_STATION, IDisplayModifierRecipe.class)
+                .stream().filter(e -> modifierNameSet.add(e.getDisplayResult().getModifier().getRegistryName()))
+                .filter(recipe -> recipe instanceof ITinkerStationRecipe).collect(Collectors.toList());
     }
 }

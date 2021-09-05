@@ -7,8 +7,8 @@ import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.renderer.ItemRenderer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.text.StringTextComponent;
-import net.tiffit.tconplanner.Blueprint;
 import net.tiffit.tconplanner.PlannerScreen;
+import net.tiffit.tconplanner.data.Blueprint;
 
 public class BookmarkedButton extends Button {
 
@@ -19,11 +19,7 @@ public class BookmarkedButton extends Button {
     private boolean selected;
 
     public BookmarkedButton(int index, Blueprint blueprint, PlannerScreen parent){
-        super(0, 0, 18, 18, new StringTextComponent(""), button -> {
-            parent.blueprint = blueprint.clone();
-            parent.setSelectedPart(-1);
-            parent.refresh();
-        });
+        super(0, 0, 18, 18, new StringTextComponent(""), button -> parent.setBlueprint(blueprint.clone()));
         this.index = index;
         this.blueprint = blueprint;
         this.parent = parent;

@@ -7,15 +7,16 @@ import net.minecraft.util.text.StringTextComponent;
 import net.tiffit.tconplanner.PlannerScreen;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
-public class PaginatedButtonGroup extends Widget {
+public class PaginatedButtonGroup<T extends Widget> extends Widget {
 
-    private final List<Widget> children = new ArrayList<>();
+    private final List<T> children = new ArrayList<>();
     private final String cachePrefix;
     private final PlannerScreen parent;
     private final int childWidth, childHeight, spacing, columns, rows, pageSize;
-    private List<Widget> onScreen = new ArrayList<>();
+    private List<T> onScreen = new ArrayList<>();
     private int totalPages;
     private float scrollPageWidth;
 
@@ -31,8 +32,12 @@ public class PaginatedButtonGroup extends Widget {
         this.cachePrefix = cachePrefix;
     }
 
-    public void addChild(Widget widget){
+    public void addChild(T widget){
         children.add(widget);
+    }
+
+    public void sort(Comparator<T> sorter){
+        children.sort(sorter);
     }
 
     public void refresh(){

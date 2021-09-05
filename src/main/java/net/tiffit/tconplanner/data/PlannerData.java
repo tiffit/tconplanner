@@ -1,4 +1,4 @@
-package net.tiffit.tconplanner;
+package net.tiffit.tconplanner.data;
 
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.CompressedStreamTools;

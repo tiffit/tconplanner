@@ -7,11 +7,11 @@ import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.util.text.ITextComponent;
 import net.tiffit.tconplanner.PlannerScreen;
 
-public class BannerButton extends Widget {
+public class BannerWidget extends Widget {
 
     private final PlannerScreen parent;
 
-    public BannerButton(int x, int y, ITextComponent text, PlannerScreen parent) {
+    public BannerWidget(int x, int y, ITextComponent text, PlannerScreen parent) {
         super(x, y, 90, 19, text);
         this.parent = parent;
     }
