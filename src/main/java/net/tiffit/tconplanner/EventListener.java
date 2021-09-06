@@ -17,7 +17,7 @@ public class EventListener {
     private static int width = 12, height = 12;
 
     @SubscribeEvent
-    public static void onGuiOpen(GuiScreenEvent.DrawScreenEvent e){
+    public static void onScreenDraw(GuiScreenEvent.DrawScreenEvent.Post e){
         if(e.getGui() instanceof TinkerStationScreen) {
             TinkerStationScreen screen = (TinkerStationScreen) e.getGui();
             int x = screen.cornerX + Config.CONFIG.buttonX.get(), y = screen.cornerY + Config.CONFIG.buttonY.get();
@@ -35,7 +35,7 @@ public class EventListener {
     }
 
     @SubscribeEvent
-    public static void onGuiClick(GuiScreenEvent.MouseClickedEvent e){
+    public static void onScreenMouseClick(GuiScreenEvent.MouseClickedEvent.Pre e){
         if(e.getGui() instanceof TinkerStationScreen) {
             TinkerStationScreen screen = (TinkerStationScreen) e.getGui();
             int x = screen.cornerX + Config.CONFIG.buttonX.get(), y = screen.cornerY + Config.CONFIG.buttonY.get();
@@ -44,6 +44,7 @@ public class EventListener {
                 Minecraft mc = Minecraft.getInstance();
                 mc.getSoundManager().play(SimpleSound.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
                 mc.setScreen(new PlannerScreen(screen));
+                e.setCanceled(true);
             }
         }
     }
