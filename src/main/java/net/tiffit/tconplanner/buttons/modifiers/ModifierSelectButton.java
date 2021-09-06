@@ -3,15 +3,20 @@ package net.tiffit.tconplanner.buttons.modifiers;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.audio.SimpleSound;
+import net.minecraft.client.audio.SoundHandler;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.SoundEvents;
 import net.minecraft.util.text.*;
 import net.tiffit.tconplanner.PlannerScreen;
 import net.tiffit.tconplanner.data.ModifierInfo;
 import net.tiffit.tconplanner.util.ModifierStateEnum;
+import slimeknights.tconstruct.library.modifiers.IncrementalModifier;
 import slimeknights.tconstruct.library.modifiers.Modifier;
+import slimeknights.tconstruct.library.recipe.modifiers.ModifierRecipeLookup;
 import slimeknights.tconstruct.library.recipe.modifiers.adding.IDisplayModifierRecipe;
 import slimeknights.tconstruct.library.tools.SlotType;
 
@@ -74,7 +79,7 @@ public class ModifierSelectButton  extends Button {
         stack.pushPose();
         stack.translate(x + width - 1, y + 11, 0);
         stack.scale(0.5f, 0.5f, 1);
-        String usedLevelsText = parent.blueprint.modifiers.getOrDefault(new ModifierInfo(recipe), 0) + (recipe.getMaxLevel() > 0 ? "/" + recipe.getMaxLevel() : "");
+        String usedLevelsText = ModifierRecipeLookup.getNeededPerLevel(modifier) + "";//parent.blueprint.modifiers.getOrDefault(new ModifierInfo(recipe), 0) + (recipe.getMaxLevel() > 0 ? "/" + recipe.getMaxLevel() : "");
         Screen.drawString(stack, font, new StringTextComponent(usedLevelsText), -font.width(usedLevelsText), 0, 0xff_ff_ff_ff);
         stack.popPose();
         if(isHovered){
@@ -94,9 +99,28 @@ public class ModifierSelectButton  extends Button {
 
     @Override
     public void onPress() {
-        ModifierInfo info = new ModifierInfo(recipe);
-        parent.blueprint.modifiers.put(info, 1);
-        parent.selectedModifier = info;
-        parent.refresh();
+        switch (state){
+            case AVAILABLE: {
+                ModifierInfo info = new ModifierInfo(recipe);
+                parent.blueprint.modifiers.put(info, 1);
+                parent.selectedModifier = info;
+                parent.refresh();
+                break;
+            }
+            case APPLIED: {
+                parent.selectedModifier = new ModifierInfo(recipe);
+                parent.refresh();
+                break;
+            }
+        }
+    }
+
+    @Override
+    public void playDownSound(SoundHandler sound) {
+        if(state == ModifierStateEnum.UNAVAILABLE){
+            sound.play(SimpleSound.forUI(SoundEvents.ANVIL_HIT, 1.0F));
+        } else {
+            super.playDownSound(sound);
+        }
     }
 }

@@ -26,12 +26,14 @@ import net.tiffit.tconplanner.util.ModifierStateEnum;
 import net.tiffit.tconplanner.util.TextPosEnum;
 import org.lwjgl.glfw.GLFW;
 import slimeknights.mantle.recipe.RecipeHelper;
+import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.library.materials.MaterialRegistry;
 import slimeknights.tconstruct.library.materials.definition.IMaterial;
 import slimeknights.tconstruct.library.materials.stats.IMaterialStats;
 import slimeknights.tconstruct.library.materials.stats.MaterialStatsId;
 import slimeknights.tconstruct.library.modifiers.Modifier;
 import slimeknights.tconstruct.library.modifiers.ModifierId;
+import slimeknights.tconstruct.library.modifiers.SingleUseModifier;
 import slimeknights.tconstruct.library.recipe.RecipeTypes;
 import slimeknights.tconstruct.library.recipe.modifiers.adding.IDisplayModifierRecipe;
 import slimeknights.tconstruct.library.recipe.tinkerstation.ITinkerStationRecipe;
@@ -53,6 +55,7 @@ import java.util.stream.Collectors;
 public class PlannerScreen extends Screen {
 
     public static ResourceLocation TEXTURE = new ResourceLocation(TConPlanner.MODID, "textures/gui/planner.png");
+    protected static final String KEY_MAX_LEVEL = TConstruct.makeTranslationKey("recipe", "modifier.max_level");
     private final HashMap<String, Object> cache = new HashMap<>();
     public Deque<Runnable> postRenderTasks = new ArrayDeque<>();
     private final TinkerStationScreen child;
@@ -219,7 +222,8 @@ public class PlannerScreen extends Screen {
                     ITinkerStationRecipe tsrecipe = (ITinkerStationRecipe) selectedModifier.recipe;
 
                     ModLevelButton addButton = new ModLevelButton(left + guiWidth + 50, top + 40, 1, this);
-                    ValidatedResult validatedResult = tsrecipe.getValidatedResult(new DummyTinkersStationInventory(result));
+                    ValidatedResult validatedResult = modifier instanceof SingleUseModifier && resultStack.getModifierLevel(modifier) == 1 ?
+                            ValidatedResult.failure(KEY_MAX_LEVEL, new Object[]{modifier.getDisplayName(), 1}) :tsrecipe.getValidatedResult(new DummyTinkersStationInventory(result));
                     if(!validatedResult.isSuccess()) addButton.disable(validatedResult.getMessage().copy().setStyle(Style.EMPTY.withColor(TextFormatting.RED)));
                     addButton(addButton);
 
