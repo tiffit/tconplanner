@@ -33,6 +33,7 @@ import slimeknights.tconstruct.library.modifiers.Modifier;
 import slimeknights.tconstruct.library.modifiers.ModifierId;
 import slimeknights.tconstruct.library.modifiers.SingleUseModifier;
 import slimeknights.tconstruct.library.recipe.RecipeTypes;
+import slimeknights.tconstruct.library.recipe.modifiers.ModifierRecipeLookup;
 import slimeknights.tconstruct.library.recipe.modifiers.adding.IDisplayModifierRecipe;
 import slimeknights.tconstruct.library.recipe.tinkerstation.ITinkerStationRecipe;
 import slimeknights.tconstruct.library.recipe.tinkerstation.ValidatedResult;
@@ -221,8 +222,17 @@ public class PlannerScreen extends Screen {
                     ModLevelButton addButton = new ModLevelButton(left + guiWidth + 2 + 50 + arrowOffset - 2, top + 50, 1, this);
                     ValidatedResult validatedResultAdd = modifier instanceof SingleUseModifier && resultStack.getModifierLevel(modifier) == 1 ?
                             ValidatedResult.failure(KEY_MAX_LEVEL, modifier.getDisplayName(), 1) :tsrecipe.getValidatedResult(new DummyTinkersStationInventory(result));
-                    if(!validatedResultAdd.isSuccess()) addButton.disable(validatedResultAdd.getMessage().copy().setStyle(Style.EMPTY.withColor(TextFormatting.RED)));
-                    addButton(new ModPreviewWidget(addButton.x + addButton.getWidth() + 2, top + 50, validatedResultAdd.getResult(), this));
+                    if(!validatedResultAdd.isSuccess()){
+                        addButton.disable(validatedResultAdd.getMessage().copy().setStyle(Style.EMPTY.withColor(TextFormatting.RED)));
+                        addButton(new ModPreviewWidget(addButton.x + addButton.getWidth() + 2, top + 50, ItemStack.EMPTY, this));
+                    }else if(blueprint.modStack.getIncrementalDiff(modifier) > 0){
+                        addButton.disable(new StringTextComponent("The current level must be max before adding a new one").setStyle(Style.EMPTY.withColor(TextFormatting.RED)));
+                        addButton(new ModPreviewWidget(addButton.x + addButton.getWidth() + 2, top + 50, ItemStack.EMPTY, this));
+                    } else {
+                        Blueprint copy = blueprint.clone();
+                        copy.modStack.push(selectedModifier);
+                        addButton(new ModPreviewWidget(addButton.x + addButton.getWidth() + 2, top + 50, copy.createOutput(), this));
+                    }
                     addButton(addButton);
 
                     ModLevelButton subtractButton = new ModLevelButton(left + guiWidth + 2 + 50 - arrowOffset - 18, top + 50, -1, this);
@@ -230,21 +240,15 @@ public class PlannerScreen extends Screen {
                     if(validatedResultSubtract.hasError()){
                         subtractButton.disable(((IFormattableTextComponent)validatedResultSubtract.getMessage()).setStyle(Style.EMPTY.withColor(TextFormatting.RED)));
                     }
-//                    int toolBaseLevel = ToolStack.from(blueprint.createOutput(false)).getModifierLevel(modifier);
-//                    int minLevel = Math.max(0, toolBaseLevel);
-//                    ToolStack subtractClone = resultStack.copy();
-//                    if(blueprint.modStack.getLevel(selectedModifier) + toolBaseLevel <= minLevel){
-//                        subtractButton.disable(new StringTextComponent("Level can not go lower").setStyle(Style.EMPTY.withColor(TextFormatting.RED)));
-//                    }else{
-//                        subtractClone.removeModifier(modifier, 1);
-//                        ValidatedResult validatedResultSubtract = subtractClone.validate();
-//                        if(validatedResultSubtract.hasError())
-//                            subtractButton.disable(((IFormattableTextComponent)validatedResultSubtract.getMessage()).setStyle(Style.EMPTY.withColor(TextFormatting.RED)));
-//                    }
                     addButton(new ModPreviewWidget(subtractButton.x - 2 - 18, top + 50, subtractButton.isDisabled() ? ItemStack.EMPTY : validatedResultSubtract.getResult(), this));
                     addButton(subtractButton);
+                    int perLevel = ModifierRecipeLookup.getNeededPerLevel(modifier);
+                    if(perLevel > 0 && blueprint.modStack.getLevel(selectedModifier) > 0){
+                        addButton(new SliderWidget(left + guiWidth + 2 + 10, top + 70, 80, 20, val -> {blueprint.modStack.setIncrementalDiff(modifier, perLevel-val); refresh();},
+                                1, perLevel, perLevel - blueprint.modStack.getIncrementalDiff(modifier), this));
+                    }
 
-                    addButton(new ModExitButton(left + guiWidth + 2 + 50 - 30, top + 100, 60, 20, this));
+                    addButton(new ModExitButton(left + guiWidth + 2 + 50 - 30, top + 150, 60, 20, this));
                 }
             }
             //Add randomize tool button
@@ -295,7 +299,6 @@ public class PlannerScreen extends Screen {
         sorter = null;
         selectedModifier = null;
         setSelectedPart(-1);
-        refresh();
     }
 
     public void setSelectedPart(int index) {

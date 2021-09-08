@@ -5,8 +5,10 @@ import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextFormatting;
 import net.tiffit.tconplanner.data.Blueprint;
 import net.tiffit.tconplanner.data.ModifierInfo;
+import slimeknights.tconstruct.library.modifiers.IncrementalModifier;
 import slimeknights.tconstruct.library.modifiers.Modifier;
 import slimeknights.tconstruct.library.modifiers.ModifierEntry;
+import slimeknights.tconstruct.library.recipe.modifiers.ModifierRecipeLookup;
 import slimeknights.tconstruct.library.recipe.modifiers.adding.IDisplayModifierRecipe;
 import slimeknights.tconstruct.library.recipe.tinkerstation.ITinkerStationRecipe;
 import slimeknights.tconstruct.library.recipe.tinkerstation.ValidatedResult;
@@ -27,6 +29,7 @@ public final class ToolValidator {
         int minLevel = Math.max(0, toolBaseLevel);
         if(bp.modStack.getLevel(modInfo) + toolBaseLevel <= minLevel)return ValidatedResult.failure("Level can not go lower");
         toolClone.removeModifier(modInfo.modifier, 1);
+        IncrementalModifier.setAmount(toolClone.getPersistentData(), modInfo.modifier, ModifierRecipeLookup.getNeededPerLevel(modInfo.modifier));
         ValidatedResult validatedResultSubtract = toolClone.validate();
         if(validatedResultSubtract.hasError())return validatedResultSubtract;
         Blueprint bpClone = bp.clone();

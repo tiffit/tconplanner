@@ -51,6 +51,7 @@ public class ModLevelButton  extends Button {
     public void onPress() {
         if(!disabled) {
             ModifierStack stack = parent.blueprint.modStack;
+            stack.setIncrementalDiff(parent.selectedModifier.modifier, 0);
             if(change > 0)stack.push(parent.selectedModifier);
             else stack.pop(parent.selectedModifier);
             parent.refresh();

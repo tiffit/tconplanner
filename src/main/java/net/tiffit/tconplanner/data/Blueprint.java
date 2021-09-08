@@ -11,6 +11,8 @@ import net.tiffit.tconplanner.util.ModifierStack;
 import slimeknights.tconstruct.library.materials.MaterialRegistry;
 import slimeknights.tconstruct.library.materials.definition.IMaterial;
 import slimeknights.tconstruct.library.materials.definition.MaterialId;
+import slimeknights.tconstruct.library.modifiers.IncrementalModifier;
+import slimeknights.tconstruct.library.recipe.modifiers.ModifierRecipeLookup;
 import slimeknights.tconstruct.library.recipe.tinkerstation.ITinkerStationRecipe;
 import slimeknights.tconstruct.library.recipe.tinkerstation.ValidatedResult;
 import slimeknights.tconstruct.library.tools.ToolDefinition;
@@ -58,6 +60,7 @@ public class Blueprint {
                     stack.getPersistentData().addSlots(info.count.getType(), -1);
                 }
             });
+            modStack.applyIncrementals(stack);
         }
         stack.rebuildStats();
         return stack.createStack();
