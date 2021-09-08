@@ -10,20 +10,18 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.RecipeManager;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvents;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.Style;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.*;
 import net.tiffit.tconplanner.buttons.*;
+import net.tiffit.tconplanner.buttons.modifiers.ModExitButton;
 import net.tiffit.tconplanner.buttons.modifiers.ModLevelButton;
+import net.tiffit.tconplanner.buttons.modifiers.ModPreviewWidget;
 import net.tiffit.tconplanner.buttons.modifiers.ModifierSelectButton;
 import net.tiffit.tconplanner.data.Blueprint;
 import net.tiffit.tconplanner.data.ModifierInfo;
 import net.tiffit.tconplanner.data.PlannerData;
 import net.tiffit.tconplanner.util.DummyTinkersStationInventory;
 import net.tiffit.tconplanner.util.MaterialSort;
-import net.tiffit.tconplanner.util.ModifierStateEnum;
-import net.tiffit.tconplanner.util.TextPosEnum;
+import net.tiffit.tconplanner.util.ToolValidator;
 import org.lwjgl.glfw.GLFW;
 import slimeknights.mantle.recipe.RecipeHelper;
 import slimeknights.tconstruct.TConstruct;
@@ -46,10 +44,11 @@ import slimeknights.tconstruct.tables.client.inventory.library.slots.SlotInforma
 import slimeknights.tconstruct.tables.client.inventory.library.slots.SlotPosition;
 import slimeknights.tconstruct.tables.client.inventory.table.TinkerStationScreen;
 
-import java.awt.*;
+import java.awt.Color;
 import java.io.IOException;
 import java.util.List;
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class PlannerScreen extends Screen {
@@ -68,7 +67,7 @@ public class PlannerScreen extends Screen {
     public int materialPage = 0;
     public MaterialSort<?> sorter;
     public ModifierInfo selectedModifier;
-    private int left, top, guiWidth, guiHeight;
+    public int left, top, guiWidth, guiHeight;
 
     private static final int partsOffsetX = 13, partsOffsetY = 15;
     public static final int materialPageSize = 3*9;
@@ -176,7 +175,7 @@ public class PlannerScreen extends Screen {
             ItemStack result = blueprint.createOutput();
             resultStack = result.isEmpty() ? null : ToolStack.from(result);
             if(resultStack != null) {
-                addButton(new OutputToolButton(left + guiWidth - 34, top + 58, result, this));
+                addButton(new OutputToolWidget(left + guiWidth - 34, top + 58, result, this));
                 boolean bookmarked = data.isBookmarked(blueprint);
                 addButton(new IconButton(left + guiWidth - 33, top + 88, 190 + (bookmarked ? 12 : 0), 78,
                         new StringTextComponent(bookmarked ? "Remove Bookmark" : "Bookmark Item"), this, e -> {if(bookmarked) unbookmarkCurrent(); else bookmarkCurrent();})
@@ -196,42 +195,56 @@ public class PlannerScreen extends Screen {
 
                 //Show modifier buttons
                 addButton(new BannerWidget(left + guiWidth + 7, top, new StringTextComponent("Modifiers"), this));
+                int modGroupStartY = top + 23;
+                int modGroupStartX = left + guiWidth + 2;
                 if(selectedModifier == null) {
-                    PaginatedButtonGroup<ModifierSelectButton> modifiersGroup = new PaginatedButtonGroup<>(left + guiWidth + 2, top + 23, 100, 18, 1, 9, 2, "modifiersgroup", this);
+                    PaginatedButtonGroup<ModifierSelectButton> modifiersGroup = new PaginatedButtonGroup<>(modGroupStartX, modGroupStartY, 100, 18, 1, 9, 2, "modifiersgroup", this);
                     addButton(modifiersGroup);
                     for (IDisplayModifierRecipe recipe : modifiers) {
                         if (recipe.getDisplayItems().get(0).stream().anyMatch(stack -> ToolStack.from(stack).getDefinition() == blueprint.toolDefinition)) {
-                            ITinkerStationRecipe tsrecipe = (ITinkerStationRecipe) recipe;
-                            ModifierStateEnum mstate = ModifierStateEnum.UNAVAILABLE;
-                            ITextComponent error = null;
-                            if (resultStack.getModifierLevel(recipe.getDisplayResult().getModifier()) != 0)
-                                mstate = ModifierStateEnum.APPLIED;
-                            else {
-                                ValidatedResult validatedResult = tsrecipe.getValidatedResult(new DummyTinkersStationInventory(result));
-                                if (validatedResult.isSuccess()) mstate = ModifierStateEnum.AVAILABLE;
-                                else error = validatedResult.getMessage();
-                            }
-                            modifiersGroup.addChild(new ModifierSelectButton(recipe, mstate, error, this));
+                            modifiersGroup.addChild(ModifierSelectButton.create(recipe, resultStack, result, this));
                         }
                     }
                     modifiersGroup.sort(Comparator.comparingInt(value -> value.state.ordinal()));
                     modifiersGroup.refresh();
-                }else{
+                } else {
+                    ModifierSelectButton modSelectButton = ModifierSelectButton.create(selectedModifier.recipe, resultStack, result, this);
+                    modSelectButton.x = modGroupStartX;
+                    modSelectButton.y = modGroupStartY;
+                    addButton(modSelectButton);
+
                     Modifier modifier = selectedModifier.modifier;
-                    addButton(new TooltipTextWidget(left + guiWidth + 52, top + 25, TextPosEnum.CENTER, modifier.getDisplayName(resultStack.getModifierLevel(modifier)), modifier.getDescriptionList(), this));
                     ITinkerStationRecipe tsrecipe = (ITinkerStationRecipe) selectedModifier.recipe;
 
-                    ModLevelButton addButton = new ModLevelButton(left + guiWidth + 50, top + 40, 1, this);
-                    ValidatedResult validatedResult = modifier instanceof SingleUseModifier && resultStack.getModifierLevel(modifier) == 1 ?
-                            ValidatedResult.failure(KEY_MAX_LEVEL, new Object[]{modifier.getDisplayName(), 1}) :tsrecipe.getValidatedResult(new DummyTinkersStationInventory(result));
-                    if(!validatedResult.isSuccess()) addButton.disable(validatedResult.getMessage().copy().setStyle(Style.EMPTY.withColor(TextFormatting.RED)));
+                    addButton(new ModPreviewWidget(left + guiWidth + 2 + 50 - 9, top + 50, result, this));
+                    int arrowOffset = 11;
+                    ModLevelButton addButton = new ModLevelButton(left + guiWidth + 2 + 50 + arrowOffset - 2, top + 50, 1, this);
+                    ValidatedResult validatedResultAdd = modifier instanceof SingleUseModifier && resultStack.getModifierLevel(modifier) == 1 ?
+                            ValidatedResult.failure(KEY_MAX_LEVEL, modifier.getDisplayName(), 1) :tsrecipe.getValidatedResult(new DummyTinkersStationInventory(result));
+                    if(!validatedResultAdd.isSuccess()) addButton.disable(validatedResultAdd.getMessage().copy().setStyle(Style.EMPTY.withColor(TextFormatting.RED)));
+                    addButton(new ModPreviewWidget(addButton.x + addButton.getWidth() + 2, top + 50, validatedResultAdd.getResult(), this));
                     addButton(addButton);
 
-                    ModLevelButton subtractButton = new ModLevelButton(left + guiWidth + 2, top + 40, -1, this);
-                    int toolBaseLevel = ToolStack.from(blueprint.createOutput(false)).getModifierLevel(modifier);
-                    int minLevel = Math.max(1, toolBaseLevel + 1);
-                    if(blueprint.modifiers.getOrDefault(selectedModifier, 1) + toolBaseLevel <= minLevel) subtractButton.disable(new StringTextComponent("Minimum level").setStyle(Style.EMPTY.withColor(TextFormatting.RED)));
+                    ModLevelButton subtractButton = new ModLevelButton(left + guiWidth + 2 + 50 - arrowOffset - 18, top + 50, -1, this);
+                    ValidatedResult validatedResultSubtract = ToolValidator.validateModRemoval(blueprint, resultStack, selectedModifier);
+                    if(validatedResultSubtract.hasError()){
+                        subtractButton.disable(((IFormattableTextComponent)validatedResultSubtract.getMessage()).setStyle(Style.EMPTY.withColor(TextFormatting.RED)));
+                    }
+//                    int toolBaseLevel = ToolStack.from(blueprint.createOutput(false)).getModifierLevel(modifier);
+//                    int minLevel = Math.max(0, toolBaseLevel);
+//                    ToolStack subtractClone = resultStack.copy();
+//                    if(blueprint.modStack.getLevel(selectedModifier) + toolBaseLevel <= minLevel){
+//                        subtractButton.disable(new StringTextComponent("Level can not go lower").setStyle(Style.EMPTY.withColor(TextFormatting.RED)));
+//                    }else{
+//                        subtractClone.removeModifier(modifier, 1);
+//                        ValidatedResult validatedResultSubtract = subtractClone.validate();
+//                        if(validatedResultSubtract.hasError())
+//                            subtractButton.disable(((IFormattableTextComponent)validatedResultSubtract.getMessage()).setStyle(Style.EMPTY.withColor(TextFormatting.RED)));
+//                    }
+                    addButton(new ModPreviewWidget(subtractButton.x - 2 - 18, top + 50, subtractButton.isDisabled() ? ItemStack.EMPTY : validatedResultSubtract.getResult(), this));
                     addButton(subtractButton);
+
+                    addButton(new ModExitButton(left + guiWidth + 2 + 50 - 30, top + 100, 60, 20, this));
                 }
             }
             //Add randomize tool button
@@ -242,7 +255,8 @@ public class PlannerScreen extends Screen {
     }
 
     @Override
-    public void render(MatrixStack stack, int mouseX, int mouseY, float p_230430_4_) {
+    public void render(MatrixStack stack, int mouseX, int mouseY, float partialTick) {
+
         renderBackground(stack);
         bindTexture();
         this.blit(stack, left, top, 0, 0, guiWidth, guiHeight);
@@ -266,7 +280,7 @@ public class PlannerScreen extends Screen {
         String title = blueprint == null ? "Select Tool" : blueprint.toolSlotInfo.getToolForRendering().getHoverName().getString();
         drawCenteredString(stack, font, title, left + guiWidth / 2, top + 7, 0xffffffff);
 
-        super.render(stack, mouseX, mouseY, p_230430_4_);
+        super.render(stack, mouseX, mouseY, partialTick);
         Runnable task;
         while((task = postRenderTasks.poll()) != null)task.run();
     }

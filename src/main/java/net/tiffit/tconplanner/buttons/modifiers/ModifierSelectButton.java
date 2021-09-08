@@ -13,31 +13,36 @@ import net.minecraft.util.SoundEvents;
 import net.minecraft.util.text.*;
 import net.tiffit.tconplanner.PlannerScreen;
 import net.tiffit.tconplanner.data.ModifierInfo;
+import net.tiffit.tconplanner.util.DummyTinkersStationInventory;
 import net.tiffit.tconplanner.util.ModifierStateEnum;
-import slimeknights.tconstruct.library.modifiers.IncrementalModifier;
 import slimeknights.tconstruct.library.modifiers.Modifier;
-import slimeknights.tconstruct.library.recipe.modifiers.ModifierRecipeLookup;
+import slimeknights.tconstruct.library.modifiers.SingleUseModifier;
 import slimeknights.tconstruct.library.recipe.modifiers.adding.IDisplayModifierRecipe;
+import slimeknights.tconstruct.library.recipe.tinkerstation.ITinkerStationRecipe;
+import slimeknights.tconstruct.library.recipe.tinkerstation.ValidatedResult;
 import slimeknights.tconstruct.library.tools.SlotType;
+import slimeknights.tconstruct.library.tools.nbt.ToolStack;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ModifierSelectButton  extends Button {
+public class ModifierSelectButton extends Button {
 
     private static final Style ERROR_STYLE = Style.EMPTY.withColor(Color.fromLegacyFormat(TextFormatting.RED));
-    private static final ITextComponent ADD_COMPONENT = new StringTextComponent("Click to add!").withStyle(Style.EMPTY.withColor(Color.fromLegacyFormat(TextFormatting.GOLD)));
 
     private final IDisplayModifierRecipe recipe;
     private final Modifier modifier;
     private final boolean selected;
     private final ITextComponent error;
+    private final ITextComponent displayName;
     public final ModifierStateEnum state;
     private final PlannerScreen parent;
     private final List<ItemStack> recipeStacks = new ArrayList<>();
 
-    public ModifierSelectButton(IDisplayModifierRecipe recipe, ModifierStateEnum state, @Nullable ITextComponent error, PlannerScreen parent) {
+    private final StringTextComponent levelText;
+
+    public ModifierSelectButton(IDisplayModifierRecipe recipe, ModifierStateEnum state, @Nullable ITextComponent error, int level, PlannerScreen parent) {
         super(0, 0, 100, 18, new StringTextComponent(""), e -> {});
         this.recipe = recipe;
         this.modifier = recipe.getDisplayResult().getModifier();
@@ -47,6 +52,9 @@ public class ModifierSelectButton  extends Button {
         this.error = error;
         List<List<ItemStack>> itemstacks = recipe.getDisplayItems();
         itemstacks.subList(1, itemstacks.size()).forEach(recipeStacks::addAll);
+        displayName = level == 0 ? modifier.getDisplayName() : modifier.getDisplayName(level);
+        int maxLevel = modifier instanceof SingleUseModifier ? 1 : recipe.getMaxLevel();
+        levelText = new StringTextComponent(parent.blueprint.modStack.getLevel(new ModifierInfo(recipe)) + "/" +(maxLevel > 0 ? maxLevel : "\u221E"));
     }
 
     @Override
@@ -64,7 +72,7 @@ public class ModifierSelectButton  extends Button {
         parent.blit(stack, x, y, 0, 224, 100, 18);
         Minecraft.getInstance().getItemRenderer().renderGuiItem(recipeStacks.get((int)((System.currentTimeMillis() / 1000) % recipeStacks.size())), x + 1, y + 1);
         FontRenderer font = Minecraft.getInstance().font;
-        Screen.drawString(stack, font, modifier.getDisplayName(), x + 20, y + 2, 0xff_ff_ff_ff);
+        Screen.drawString(stack, font, displayName, x + 20, y + 2, 0xff_ff_ff_ff);
 
         stack.pushPose();
         stack.translate(x + 20, y + 11, 0);
@@ -79,8 +87,7 @@ public class ModifierSelectButton  extends Button {
         stack.pushPose();
         stack.translate(x + width - 1, y + 11, 0);
         stack.scale(0.5f, 0.5f, 1);
-        String usedLevelsText = ModifierRecipeLookup.getNeededPerLevel(modifier) + "";//parent.blueprint.modifiers.getOrDefault(new ModifierInfo(recipe), 0) + (recipe.getMaxLevel() > 0 ? "/" + recipe.getMaxLevel() : "");
-        Screen.drawString(stack, font, new StringTextComponent(usedLevelsText), -font.width(usedLevelsText), 0, 0xff_ff_ff_ff);
+        Screen.drawString(stack, font, levelText, -font.width(levelText), 0, 0xff_ff_ff_ff);
         stack.popPose();
         if(isHovered){
             renderToolTip(stack, mouseX, mouseY);
@@ -92,7 +99,6 @@ public class ModifierSelectButton  extends Button {
         parent.postRenderTasks.add(() -> {
             List<ITextComponent> tooltips = new ArrayList<>(modifier.getDescriptionList());
             if(state == ModifierStateEnum.UNAVAILABLE)tooltips.add(error.copy().withStyle(ERROR_STYLE));
-            else tooltips.add(ADD_COMPONENT);
             parent.renderComponentTooltip(stack, tooltips, mouseX, mouseY);
         });
     }
@@ -102,7 +108,6 @@ public class ModifierSelectButton  extends Button {
         switch (state){
             case AVAILABLE: {
                 ModifierInfo info = new ModifierInfo(recipe);
-                parent.blueprint.modifiers.put(info, 1);
                 parent.selectedModifier = info;
                 parent.refresh();
                 break;
@@ -122,5 +127,20 @@ public class ModifierSelectButton  extends Button {
         } else {
             super.playDownSound(sound);
         }
+    }
+
+    public static ModifierSelectButton create(IDisplayModifierRecipe recipe, ToolStack tstack, ItemStack stack, PlannerScreen screen){
+        ITinkerStationRecipe tsrecipe = (ITinkerStationRecipe) recipe;
+        ModifierStateEnum mstate = ModifierStateEnum.UNAVAILABLE;
+        ITextComponent error = null;
+        int currentLevel = tstack.getModifierLevel(recipe.getDisplayResult().getModifier());
+        if (currentLevel != 0)
+            mstate = ModifierStateEnum.APPLIED;
+        else {
+            ValidatedResult validatedResult = tsrecipe.getValidatedResult(new DummyTinkersStationInventory(stack));
+            if (validatedResult.isSuccess()) mstate = ModifierStateEnum.AVAILABLE;
+            else error = validatedResult.getMessage();
+        }
+        return new ModifierSelectButton(recipe, mstate, error, currentLevel, screen);
     }
 }

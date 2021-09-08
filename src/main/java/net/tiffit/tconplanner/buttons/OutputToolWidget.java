@@ -2,18 +2,20 @@ package net.tiffit.tconplanner.buttons;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.audio.SoundHandler;
+import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.text.StringTextComponent;
 import net.tiffit.tconplanner.PlannerScreen;
 
-public class OutputToolButton extends Button {
+public class OutputToolWidget extends Widget {
 
     private final ItemStack stack;
     private final PlannerScreen parent;
 
-    public OutputToolButton(int x, int y, ItemStack stack, PlannerScreen parent){
-        super(x, y, 16, 16, new StringTextComponent(""), button -> {});
+    public OutputToolWidget(int x, int y, ItemStack stack, PlannerScreen parent){
+        super(x, y, 16, 16, new StringTextComponent(""));
         this.parent = parent;
         this.stack = stack;
     }
@@ -33,5 +35,6 @@ public class OutputToolButton extends Button {
         parent.postRenderTasks.add(() -> parent.renderItemTooltip(stack, this.stack, mouseX, mouseY));
     }
 
-
+    @Override
+    public void playDownSound(SoundHandler sound) {}
 }

@@ -6,8 +6,11 @@ import net.minecraft.client.audio.SoundHandler;
 import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.Style;
+import net.minecraft.util.text.TextFormatting;
 import net.tiffit.tconplanner.PlannerScreen;
 import net.tiffit.tconplanner.data.ModifierInfo;
+import net.tiffit.tconplanner.util.ModifierStack;
 
 import java.util.HashMap;
 
@@ -19,7 +22,7 @@ public class ModLevelButton  extends Button {
     private ITextComponent tooltip;
 
     public ModLevelButton(int x, int y, int change, PlannerScreen parent) {
-        super(x, y, 18, 18, new StringTextComponent(""), e -> {});
+        super(x, y, 18, 17, new StringTextComponent(""), e -> {});
         this.parent = parent;
         this.change = change;
     }
@@ -29,12 +32,16 @@ public class ModLevelButton  extends Button {
         disabled = true;
     }
 
+    public boolean isDisabled(){
+        return disabled;
+    }
+
     @Override
     public void renderButton(MatrixStack stack, int mouseX, int mouseY, float p_230431_4_) {
         PlannerScreen.bindTexture();
         RenderSystem.enableBlend();
-        RenderSystem.color4f(1f, 1f, 1f, 1f);
-        parent.blit(stack, x, y, change > 0 ? 205 : 223, disabled  ? 135 : 117, width, height);
+        RenderSystem.color4f(1f, 1f, 1f, disabled ? 0.5f : 1f);
+        parent.blit(stack, x, y, change > 0 ? 176 : 194, disabled  ? 146 : 163, width, height);
         if(isHovered()){
             renderToolTip(stack, mouseX, mouseY);
         }
@@ -43,8 +50,9 @@ public class ModLevelButton  extends Button {
     @Override
     public void onPress() {
         if(!disabled) {
-            HashMap<ModifierInfo, Integer> mods = parent.blueprint.modifiers;
-            mods.put(parent.selectedModifier, mods.getOrDefault(parent.selectedModifier, 1) + change);
+            ModifierStack stack = parent.blueprint.modStack;
+            if(change > 0)stack.push(parent.selectedModifier);
+            else stack.pop(parent.selectedModifier);
             parent.refresh();
         }
     }
@@ -53,6 +61,8 @@ public class ModLevelButton  extends Button {
     public void renderToolTip(MatrixStack stack, int mouseX, int mouseY) {
         if(disabled) {
             parent.postRenderTasks.add(() -> parent.renderTooltip(stack, tooltip, mouseX, mouseY));
+        }else{
+            parent.postRenderTasks.add(() -> parent.renderTooltip(stack, new StringTextComponent(change < 0 ? "Remove Level" : "Add Level").setStyle(Style.EMPTY.withColor(TextFormatting.GREEN)), mouseX, mouseY));
         }
     }
 

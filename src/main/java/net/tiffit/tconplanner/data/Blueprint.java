@@ -6,13 +6,13 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.nbt.StringNBT;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
-import net.tiffit.tconplanner.PlannerScreen;
+import net.tiffit.tconplanner.util.DummyTinkersStationInventory;
+import net.tiffit.tconplanner.util.ModifierStack;
 import slimeknights.tconstruct.library.materials.MaterialRegistry;
 import slimeknights.tconstruct.library.materials.definition.IMaterial;
 import slimeknights.tconstruct.library.materials.definition.MaterialId;
-import slimeknights.tconstruct.library.modifiers.ModifierId;
-import slimeknights.tconstruct.library.recipe.modifiers.adding.IDisplayModifierRecipe;
+import slimeknights.tconstruct.library.recipe.tinkerstation.ITinkerStationRecipe;
+import slimeknights.tconstruct.library.recipe.tinkerstation.ValidatedResult;
 import slimeknights.tconstruct.library.tools.ToolDefinition;
 import slimeknights.tconstruct.library.tools.helper.ToolBuildHandler;
 import slimeknights.tconstruct.library.tools.item.IModifiable;
@@ -22,7 +22,7 @@ import slimeknights.tconstruct.tables.client.SlotInformationLoader;
 import slimeknights.tconstruct.tables.client.inventory.library.slots.SlotInformation;
 
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class Blueprint {
 
@@ -32,7 +32,7 @@ public class Blueprint {
     public final ToolDefinition toolDefinition;
     public final IToolPart[] parts;
     public final IMaterial[] materials;
-    public final HashMap<ModifierInfo, Integer> modifiers = new HashMap<>();
+    public final ModifierStack modStack = new ModifierStack();
 
     public Blueprint(SlotInformation information){
         this.toolSlotInfo = information;
@@ -52,21 +52,15 @@ public class Blueprint {
         ItemStack built = ToolBuildHandler.buildItemFromMaterials(toolItem, Lists.newArrayList(materials));
         ToolStack stack = ToolStack.from(built);
         if(applyMods) {
-            for (Map.Entry<ModifierInfo, Integer> entry : modifiers.entrySet()) {
-                ModifierInfo info = entry.getKey();
-                int level = entry.getValue();
-                stack.addModifier(info.modifier, level);
+            modStack.forEach(info -> {
+                stack.addModifier(info.modifier, 1);
                 if (info.count != null) {
-                    stack.getPersistentData().addSlots(info.count.getType(), -info.count.getCount() * level);
+                    stack.getPersistentData().addSlots(info.count.getType(), -1);
                 }
-            }
+            });
         }
         stack.rebuildStats();
         return stack.createStack();
-    }
-
-    public ITextComponent getModifierDisplayName(ModifierInfo info){
-        return info.modifier.getDisplayName(modifiers.getOrDefault(info, 1));
     }
 
     public boolean isComplete(){
@@ -85,6 +79,19 @@ public class Blueprint {
         return toNBT().equals(blueprint.toNBT());
     }
 
+    public ValidatedResult validate(){
+        ItemStack is = createOutput(false);
+        AtomicReference<ValidatedResult> result = new AtomicReference<>(null);
+        modStack.forEach(info -> {
+            if(result.get() == null) {
+                ValidatedResult rs = ((ITinkerStationRecipe) info.recipe).getValidatedResult(new DummyTinkersStationInventory(is));
+                if(rs.hasError()) result.set(rs);
+            }
+        });
+        if(result.get() == null)return ValidatedResult.PASS;
+        return result.get();
+    }
+
     public CompoundNBT toNBT(){
         CompoundNBT nbt = new CompoundNBT();
         nbt.putString("tool", Objects.requireNonNull(toolSlotInfo.getItem().getRegistryName()).toString());
@@ -93,15 +100,7 @@ public class Blueprint {
             matList.add(StringNBT.valueOf(materials[i] == null ? "" : materials[i].getIdentifier().toString()));
         }
         nbt.put("materials", matList);
-
-        ListNBT modList = new ListNBT();
-        modifiers.forEach((info, level) -> {
-            CompoundNBT mod = new CompoundNBT();
-            mod.putString("mod", info.modifier.getId().toString());
-            mod.putInt("level", level);
-            modList.add(mod);
-        });
-        nbt.put("modifiers", modList);
+        nbt.put("modifiers", modStack.toNBT());
         return nbt;
     }
 
@@ -122,16 +121,8 @@ public class Blueprint {
             }
         }
 
-        ListNBT modifiers = tag.getList("modifiers", 10);
-        Map<ModifierId, IDisplayModifierRecipe> recipesMap = PlannerScreen.getModifierRecipes().stream().collect(Collectors.toMap(recipe -> recipe.getDisplayResult().getModifier().getId(), recipe -> recipe));
-        for(int i = 0; i < modifiers.size(); i++){
-            CompoundNBT compound = modifiers.getCompound(i);
-            int level = compound.getInt("level");
-            ModifierId modId = new ModifierId(compound.getString("mod"));
-            if(recipesMap.containsKey(modId)) {
-                bp.modifiers.put(new ModifierInfo(recipesMap.get(modId)), level);
-            }
-        }
+        ListNBT modifiers = tag.getList("modifiers", 8);
+        bp.modStack.fromNBT(modifiers);
         return bp;
     }
 
