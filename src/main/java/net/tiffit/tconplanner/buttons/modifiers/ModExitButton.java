@@ -13,13 +13,14 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.text.*;
 import net.tiffit.tconplanner.PlannerScreen;
+import net.tiffit.tconplanner.util.TranslationUtil;
 
 public class ModExitButton  extends Button {
 
     private final PlannerScreen parent;
 
     public ModExitButton(int x, int y, int width, int height, PlannerScreen parent) {
-        super(x, y, width, height, new StringTextComponent("Back"), e -> {});
+        super(x, y, width, height, TranslationUtil.createComponent("modifiers.exit"), e -> {});
         this.parent = parent;
     }
 

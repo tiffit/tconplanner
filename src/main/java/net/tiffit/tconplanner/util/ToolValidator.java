@@ -27,7 +27,7 @@ public final class ToolValidator {
         ToolStack toolClone = tool.copy();
         int toolBaseLevel = ToolStack.from(bp.createOutput(false)).getModifierLevel(modInfo.modifier);
         int minLevel = Math.max(0, toolBaseLevel);
-        if(bp.modStack.getLevel(modInfo) + toolBaseLevel <= minLevel)return ValidatedResult.failure("Level can not go lower");
+        if(bp.modStack.getLevel(modInfo) + toolBaseLevel <= minLevel)return ValidatedResult.failure("gui.tconplanner.modifiers.error.minlevel");
         toolClone.removeModifier(modInfo.modifier, 1);
         IncrementalModifier.setAmount(toolClone.getPersistentData(), modInfo.modifier, ModifierRecipeLookup.getNeededPerLevel(modInfo.modifier));
         ValidatedResult validatedResultSubtract = toolClone.validate();

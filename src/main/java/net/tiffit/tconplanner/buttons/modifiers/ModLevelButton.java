@@ -11,6 +11,7 @@ import net.minecraft.util.text.TextFormatting;
 import net.tiffit.tconplanner.PlannerScreen;
 import net.tiffit.tconplanner.data.ModifierInfo;
 import net.tiffit.tconplanner.util.ModifierStack;
+import net.tiffit.tconplanner.util.TranslationUtil;
 
 import java.util.HashMap;
 
@@ -63,7 +64,7 @@ public class ModLevelButton  extends Button {
         if(disabled) {
             parent.postRenderTasks.add(() -> parent.renderTooltip(stack, tooltip, mouseX, mouseY));
         }else{
-            parent.postRenderTasks.add(() -> parent.renderTooltip(stack, new StringTextComponent(change < 0 ? "Remove Level" : "Add Level").setStyle(Style.EMPTY.withColor(TextFormatting.GREEN)), mouseX, mouseY));
+            parent.postRenderTasks.add(() -> parent.renderTooltip(stack, TranslationUtil.createComponent(change < 0 ? "modifiers.removelevel" : "modifiers.addlevel").setStyle(Style.EMPTY.withColor(TextFormatting.GREEN)), mouseX, mouseY));
         }
     }
 

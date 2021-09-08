@@ -15,6 +15,7 @@ import net.tiffit.tconplanner.PlannerScreen;
 import net.tiffit.tconplanner.data.ModifierInfo;
 import net.tiffit.tconplanner.util.DummyTinkersStationInventory;
 import net.tiffit.tconplanner.util.ModifierStateEnum;
+import net.tiffit.tconplanner.util.TranslationUtil;
 import slimeknights.tconstruct.library.modifiers.Modifier;
 import slimeknights.tconstruct.library.modifiers.SingleUseModifier;
 import slimeknights.tconstruct.library.recipe.modifiers.adding.IDisplayModifierRecipe;
@@ -79,7 +80,8 @@ public class ModifierSelectButton extends Button {
         stack.scale(0.5f, 0.5f, 1);
         if(recipe.getSlots() != null) {
             SlotType.SlotCount count = recipe.getSlots();
-            IFormattableTextComponent text = new StringTextComponent("Uses ").append(count.getCount() + " ").append(count.getType().getDisplayName()).append(count.getCount() != 1 ? " slots" : " slot");
+            IFormattableTextComponent text = count.getCount() == 1 ? TranslationUtil.createComponent("modifiers.usedslot", count.getType().getDisplayName()) : TranslationUtil.createComponent("modifiers.usedslots", count.getCount(), count.getType().getDisplayName());
+            //new StringTextComponent("Uses ").append(count.getCount() + " ").append(count.getType().getDisplayName()).append(count.getCount() != 1 ? " slots" : " slot");
             Screen.drawString(stack, font, text, 0, 0, 0xff_ff_ff_ff);
         }
         stack.popPose();

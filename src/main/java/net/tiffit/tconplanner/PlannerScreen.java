@@ -22,6 +22,7 @@ import net.tiffit.tconplanner.data.PlannerData;
 import net.tiffit.tconplanner.util.DummyTinkersStationInventory;
 import net.tiffit.tconplanner.util.MaterialSort;
 import net.tiffit.tconplanner.util.ToolValidator;
+import net.tiffit.tconplanner.util.TranslationUtil;
 import org.lwjgl.glfw.GLFW;
 import slimeknights.mantle.recipe.RecipeHelper;
 import slimeknights.tconstruct.TConstruct;
@@ -74,7 +75,7 @@ public class PlannerScreen extends Screen {
     public static final int materialPageSize = 3*9;
 
     public PlannerScreen(TinkerStationScreen child) {
-        super(new StringTextComponent("Tinker's Planner"));
+        super(TranslationUtil.createComponent("name"));
         this.child = child;
         data = TConPlanner.DATA;
         for (SlotInformation info : SlotInformationLoader.getSlotInformationList()) {
@@ -108,7 +109,7 @@ public class PlannerScreen extends Screen {
 
         // List of tool types
         int toolSpace = 20;
-        addButton(new BannerWidget(left - 95, top, new StringTextComponent("Tools"), this));
+        addButton(new BannerWidget(left - 95, top, TranslationUtil.createComponent("banner.tools"), this));
         PaginatedButtonGroup<ToolTypeButton> toolsGroup = new PaginatedButtonGroup<>(left - toolSpace * 5, top + 23, 18, 18, 5, 3, 2,"toolsgroup", this);
         addButton(toolsGroup);
         for (int i = 0; i < tools.size(); i++) {
@@ -119,7 +120,7 @@ public class PlannerScreen extends Screen {
 
         //List of bookmarked items
         if(data.saved.size() > 0) {
-            addButton(new BannerWidget(left - 95, top + 15 + 18*4, new StringTextComponent("Bookmarked"), this));
+            addButton(new BannerWidget(left - 95, top + 15 + 18*4, TranslationUtil.createComponent("banner.bookmarked"), this));
             PaginatedButtonGroup<BookmarkedButton> bookmarkGroup = new PaginatedButtonGroup<>(left - toolSpace * 5, top + 15 + 18*4 + 23, 18, 18, 5, 5, 2,"bookmarkedgroup", this);
             addButton(bookmarkGroup);
             for (int i = 0; i < data.saved.size(); i++) {
@@ -167,7 +168,7 @@ public class PlannerScreen extends Screen {
                     int startX = left + guiWidth/2 - 6*sorts.size();
                     for (int i = 0; i < sorts.size(); i++) {
                         MaterialSort<?> sort = sorts.get(i);
-                        addButton(new IconButton(startX + i*12, leftPage.y + 3, sort.iconU, sort.iconV, new StringTextComponent("Sort: " + sort.text), this, e -> sort(sort))
+                        addButton(new IconButton(startX + i*12, leftPage.y + 3, sort.iconU, sort.iconV, TranslationUtil.createComponent("sort", sort.text), this, e -> sort(sort))
                                 .withColor(sort == sorter ? Color.WHITE : new Color(0.4f, 0.4f, 0.4f)).withSound(SoundEvents.PAINTING_PLACE));
                     }
                 }
@@ -179,7 +180,7 @@ public class PlannerScreen extends Screen {
                 addButton(new OutputToolWidget(left + guiWidth - 34, top + 58, result, this));
                 boolean bookmarked = data.isBookmarked(blueprint);
                 addButton(new IconButton(left + guiWidth - 33, top + 88, 190 + (bookmarked ? 12 : 0), 78,
-                        new StringTextComponent(bookmarked ? "Remove Bookmark" : "Bookmark Item"), this, e -> {if(bookmarked) unbookmarkCurrent(); else bookmarkCurrent();})
+                        TranslationUtil.createComponent(bookmarked ? "bookmark.remove" : "bookmark.add"), this, e -> {if(bookmarked) unbookmarkCurrent(); else bookmarkCurrent();})
                         .withSound(bookmarked ? SoundEvents.UI_STONECUTTER_TAKE_RESULT : SoundEvents.BOOK_PAGE_TURN));
                 //Show available modifier slots
                 int slotIndex = 0;
@@ -188,14 +189,14 @@ public class PlannerScreen extends Screen {
                     if(slots > 0) {
                         addButton(new TooltipTextWidget(left + 100 + slotIndex*15, top + 30,
                                 new StringTextComponent("" + slots),
-                                new StringTextComponent("Available ").append(slotType.getDisplayName()).append(" slots"), this)
+                                TranslationUtil.createComponent("slots.available", slotType.getDisplayName()), this)
                                 .withColor(slotType.getColor().getValue() + 0xff_00_00_00));
                         slotIndex++;
                     }
                 }
 
                 //Show modifier buttons
-                addButton(new BannerWidget(left + guiWidth + 7, top, new StringTextComponent("Modifiers"), this));
+                addButton(new BannerWidget(left + guiWidth + 7, top, TranslationUtil.createComponent("banner.modifiers"), this));
                 int modGroupStartY = top + 23;
                 int modGroupStartX = left + guiWidth + 2;
                 if(selectedModifier == null) {
@@ -226,7 +227,7 @@ public class PlannerScreen extends Screen {
                         addButton.disable(validatedResultAdd.getMessage().copy().setStyle(Style.EMPTY.withColor(TextFormatting.RED)));
                         addButton(new ModPreviewWidget(addButton.x + addButton.getWidth() + 2, top + 50, ItemStack.EMPTY, this));
                     }else if(blueprint.modStack.getIncrementalDiff(modifier) > 0){
-                        addButton.disable(new StringTextComponent("The current level must be max before adding a new one").setStyle(Style.EMPTY.withColor(TextFormatting.RED)));
+                        addButton.disable(TranslationUtil.createComponent("modifiers.error.incrementnotmax").setStyle(Style.EMPTY.withColor(TextFormatting.RED)));
                         addButton(new ModPreviewWidget(addButton.x + addButton.getWidth() + 2, top + 50, ItemStack.EMPTY, this));
                     } else {
                         Blueprint copy = blueprint.clone();
@@ -253,7 +254,7 @@ public class PlannerScreen extends Screen {
             }
             //Add randomize tool button
             addButton(new IconButton(left + guiWidth - 70, top + 88, 176, 104,
-                    new StringTextComponent("Randomize Materials"), this, e -> randomize())
+                    TranslationUtil.createComponent("randomize"), this, e -> randomize())
                     .withSound(SoundEvents.ENDERMAN_TELEPORT));
         }
     }
@@ -281,7 +282,7 @@ public class PlannerScreen extends Screen {
             this.blit(stack, left + boxX, top + boxY, boxX, boxY, boxL, boxL);
             RenderSystem.popMatrix();
         }
-        String title = blueprint == null ? "Select Tool" : blueprint.toolSlotInfo.getToolForRendering().getHoverName().getString();
+        ITextComponent title = blueprint == null ? TranslationUtil.createComponent("notool") : blueprint.toolSlotInfo.getToolForRendering().getHoverName();
         drawCenteredString(stack, font, title, left + guiWidth / 2, top + 7, 0xffffffff);
 
         super.render(stack, mouseX, mouseY, partialTick);

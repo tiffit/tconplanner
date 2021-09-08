@@ -10,6 +10,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.tiffit.tconplanner.util.TranslationUtil;
 import slimeknights.tconstruct.tables.client.inventory.table.TinkerStationScreen;
 
 @Mod.EventBusSubscriber(Dist.CLIENT)
@@ -29,7 +30,7 @@ public class EventListener {
             if(!hovered)RenderSystem.color4f(1F, 1.0F, 1.0F, 0.5F);
             screen.blit(stack, x, y, 176, 78, 12, 12);
             if(hovered){
-                screen.renderTooltip(stack, new StringTextComponent("Open Planner"), mx, my);
+                screen.renderTooltip(stack, TranslationUtil.createComponent("plannerbutton"), mx, my);
             }
         }
     }
