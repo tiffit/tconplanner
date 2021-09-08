@@ -107,10 +107,20 @@ public class PaginatedButtonGroup<T extends Widget> extends Widget {
         return result;
     }
 
-    public boolean mouseScrolled(double p_231043_1_, double p_231043_3_, double p_231043_5_) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double scroll) {
         boolean result = false;
+        int currentPage = parent.getCacheValue(cachePrefix + ".page", 0);
+        if(scroll > 0 && currentPage < totalPages){
+            setPage(currentPage + 1);
+            result = true;
+        }else if(scroll < 0 && currentPage > 0){
+            setPage(currentPage - 1);
+            result = true;
+        }
         for (Widget child : onScreen) {
-            if(child.mouseScrolled(p_231043_1_, p_231043_3_, p_231043_5_))result = true;
+            if(child.isMouseOver(mouseX, mouseY)) {
+                if (child.mouseScrolled(mouseX, mouseY, scroll)) result = true;
+            }
         }
         return result;
     }
@@ -135,22 +145,6 @@ public class PaginatedButtonGroup<T extends Widget> extends Widget {
         boolean result = false;
         for (Widget child : onScreen) {
             if(child.charTyped(p_231042_1_, p_231042_2_))result = true;
-        }
-        return result;
-    }
-
-    public boolean changeFocus(boolean p_231049_1_) {
-        boolean result = false;
-        for (Widget child : onScreen) {
-            if(child.changeFocus(p_231049_1_))result = true;
-        }
-        return result;
-    }
-
-    public boolean isMouseOver(double p_231047_1_, double p_231047_3_) {
-        boolean result = false;
-        for (Widget child : onScreen) {
-            if(child.isMouseOver(p_231047_1_, p_231047_3_))result = true;
         }
         return result;
     }
