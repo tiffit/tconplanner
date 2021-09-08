@@ -16,14 +16,13 @@ public class PlannerPanel extends Widget {
     public PlannerPanel(int x, int y, int width, int height, PlannerScreen parent) {
         super(x, y, width, height, new StringTextComponent(""));
         this.parent = parent;
-        init();
     }
 
     public void addChild(Widget widget){
+        widget.x += x;
+        widget.y += y;
         children.add(widget);
     }
-
-    public void init(){}
 
     @Override
     public void render(MatrixStack stack, int mouseX, int mouseY, float p_230430_4_) {
@@ -41,10 +40,10 @@ public class PlannerPanel extends Widget {
         return result;
     }
 
-    public boolean mouseReleased(double p_231048_1_, double p_231048_3_, int p_231048_5_) {
+    public boolean mouseReleased(double mouseX, double mouseY, int p_231048_5_) {
         boolean result = false;
         for (Widget child : children) {
-            if(child.mouseReleased(p_231048_1_, p_231048_3_, p_231048_5_))result = true;
+            if(child.mouseReleased(mouseX, mouseY, p_231048_5_))result = true;
         }
         return result;
     }

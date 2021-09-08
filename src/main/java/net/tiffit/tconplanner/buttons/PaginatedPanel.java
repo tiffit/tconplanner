@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-public class PaginatedButtonGroup<T extends Widget> extends PlannerPanel {
+public class PaginatedPanel<T extends Widget> extends PlannerPanel {
 
     private final List<T> allChildren = new ArrayList<>();
     private final String cachePrefix;
@@ -18,7 +18,7 @@ public class PaginatedButtonGroup<T extends Widget> extends PlannerPanel {
     private int totalPages;
     private float scrollPageWidth;
 
-    public PaginatedButtonGroup(int x, int y, int childWidth, int childHeight, int columns, int rows, int spacing, String cachePrefix, PlannerScreen parent) {
+    public PaginatedPanel(int x, int y, int childWidth, int childHeight, int columns, int rows, int spacing, String cachePrefix, PlannerScreen parent) {
         super(x, y, (childWidth+spacing) * columns - spacing, (childHeight+spacing) * rows - spacing + 4, parent);
         this.childWidth = childWidth;
         this.childHeight = childHeight;
