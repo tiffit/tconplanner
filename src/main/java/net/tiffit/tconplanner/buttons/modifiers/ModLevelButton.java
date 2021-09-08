@@ -9,11 +9,8 @@ import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextFormatting;
 import net.tiffit.tconplanner.PlannerScreen;
-import net.tiffit.tconplanner.data.ModifierInfo;
 import net.tiffit.tconplanner.util.ModifierStack;
 import net.tiffit.tconplanner.util.TranslationUtil;
-
-import java.util.HashMap;
 
 public class ModLevelButton  extends Button {
 

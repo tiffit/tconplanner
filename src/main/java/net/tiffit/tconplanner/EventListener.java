@@ -5,7 +5,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.SimpleSound;
 import net.minecraft.util.SoundEvents;
-import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -15,7 +14,7 @@ import slimeknights.tconstruct.tables.client.inventory.table.TinkerStationScreen
 
 @Mod.EventBusSubscriber(Dist.CLIENT)
 public class EventListener {
-    private static int width = 12, height = 12;
+    private static final int width = 12, height = 12;
 
     @SubscribeEvent
     public static void onScreenDraw(GuiScreenEvent.DrawScreenEvent.Post e){

@@ -50,7 +50,6 @@ import java.awt.Color;
 import java.io.IOException;
 import java.util.List;
 import java.util.*;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class PlannerScreen extends Screen {
@@ -373,6 +372,7 @@ public class PlannerScreen extends Screen {
 
     public void randomize(){
         if(blueprint != null){
+            setBlueprint(new Blueprint(blueprint.toolSlotInfo));
             Random r = new Random();
             List<IMaterial> materials = new ArrayList<>(MaterialRegistry.getMaterials());
             for (int i = 0; i < blueprint.parts.length; i++) {

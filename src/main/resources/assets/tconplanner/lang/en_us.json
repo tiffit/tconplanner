@@ -1,5 +1,5 @@
 {
-  "gui.tinkerstation.plannerbutton": "Open Planner",
+  "gui.tconplanner.plannerbutton": "Open Planner",
   "gui.tconplanner.name": "Tinker's Planner",
   "gui.tconplanner.notool": "Select Tool",
   "gui.tconplanner.banner.tools": "Tools",
