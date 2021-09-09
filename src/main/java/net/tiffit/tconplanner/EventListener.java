@@ -9,12 +9,15 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.tiffit.tconplanner.screen.PlannerScreen;
+import net.tiffit.tconplanner.util.Icon;
 import net.tiffit.tconplanner.util.TranslationUtil;
 import slimeknights.tconstruct.tables.client.inventory.table.TinkerStationScreen;
 
 @Mod.EventBusSubscriber(Dist.CLIENT)
 public class EventListener {
     private static final int width = 12, height = 12;
+    private static final Icon plannerIcon = new Icon(0, 0);
 
     @SubscribeEvent
     public static void onScreenDraw(GuiScreenEvent.DrawScreenEvent.Post e){
@@ -27,7 +30,7 @@ public class EventListener {
             boolean hovered = mx > x && mx < x + width && my > y && my < y + height;
             RenderSystem.enableBlend();
             if(!hovered)RenderSystem.color4f(1F, 1.0F, 1.0F, 0.5F);
-            screen.blit(stack, x, y, 176, 78, 12, 12);
+            plannerIcon.render(screen, stack, x, y);
             if(hovered){
                 screen.renderTooltip(stack, TranslationUtil.createComponent("plannerbutton"), mx, my);
             }

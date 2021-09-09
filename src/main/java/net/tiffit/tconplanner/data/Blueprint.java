@@ -124,7 +124,7 @@ public class Blueprint {
             }
         }
 
-        ListNBT modifiers = tag.getList("modifiers", 8);
+        CompoundNBT modifiers = tag.getCompound("modifiers");
         bp.modStack.fromNBT(modifiers);
         return bp;
     }

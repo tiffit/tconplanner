@@ -20,13 +20,12 @@ public class MaterialSort<T extends IMaterialStats> {
 
     public final Comparator<T> comparator;
     public final String text;
-    public final int iconU, iconV;
+    public final Icon icon;
 
-    public MaterialSort(Comparator<T> comparator, String text, int iconU, int iconV) {
+    public MaterialSort(Comparator<T> comparator, String text, Icon icon) {
         this.comparator = comparator;
         this.text = text;
-        this.iconU = iconU;
-        this.iconV = iconV;
+        this.icon = icon;
     }
 
     @SuppressWarnings("unchecked")
@@ -52,15 +51,15 @@ public class MaterialSort<T extends IMaterialStats> {
     }
 
     static {
-        add(HandleMaterialStats.class, new MaterialSort<>(Comparator.comparingDouble(HandleMaterialStats::getDurability), "Durability Multiplier", 176, 91));
-        add(HandleMaterialStats.class, new MaterialSort<>(Comparator.comparingDouble(HandleMaterialStats::getMiningSpeed), "Mining Speed", 176 + 12*2, 91));
-        add(HandleMaterialStats.class, new MaterialSort<>(Comparator.comparingDouble(HandleMaterialStats::getAttackSpeed), "Attack Speed", 176 + 12*3, 91));
-        add(HandleMaterialStats.class, new MaterialSort<>(Comparator.comparingDouble(HandleMaterialStats::getAttackDamage), "Attack Damage", 176 + 12*4, 91));
+        add(HandleMaterialStats.class, new MaterialSort<>(Comparator.comparingDouble(HandleMaterialStats::getDurability), "Durability Multiplier", new Icon(0, 1)));
+        add(HandleMaterialStats.class, new MaterialSort<>(Comparator.comparingDouble(HandleMaterialStats::getMiningSpeed), "Mining Speed", new Icon(2, 1)));
+        add(HandleMaterialStats.class, new MaterialSort<>(Comparator.comparingDouble(HandleMaterialStats::getAttackSpeed), "Attack Speed", new Icon(3, 1)));
+        add(HandleMaterialStats.class, new MaterialSort<>(Comparator.comparingDouble(HandleMaterialStats::getAttackDamage), "Attack Damage", new Icon(4, 1)));
 
 
-        add(HeadMaterialStats.class, new MaterialSort<>(Comparator.comparingInt(HeadMaterialStats::getDurability), "Durability", 176 + 12, 91));
-        add(HeadMaterialStats.class, new MaterialSort<>(Comparator.comparingInt(HeadMaterialStats::getHarvestLevel), "Harvest Level", 176 + 12*5, 91));
-        add(HeadMaterialStats.class, new MaterialSort<>(Comparator.comparingDouble(HeadMaterialStats::getMiningSpeed), "Mining Speed", 176 + 12*2, 91));
-        add(HeadMaterialStats.class, new MaterialSort<>(Comparator.comparingDouble(HeadMaterialStats::getAttack), "Attack Damage", 176 + 12*4, 91));
+        add(HeadMaterialStats.class, new MaterialSort<>(Comparator.comparingInt(HeadMaterialStats::getDurability), "Durability", new Icon(1, 1)));
+        add(HeadMaterialStats.class, new MaterialSort<>(Comparator.comparingInt(HeadMaterialStats::getHarvestLevel), "Harvest Level", new Icon(5, 1)));
+        add(HeadMaterialStats.class, new MaterialSort<>(Comparator.comparingDouble(HeadMaterialStats::getMiningSpeed), "Mining Speed", new Icon(2, 1)));
+        add(HeadMaterialStats.class, new MaterialSort<>(Comparator.comparingDouble(HeadMaterialStats::getAttack), "Attack Damage", new Icon(4, 1)));
     }
 }

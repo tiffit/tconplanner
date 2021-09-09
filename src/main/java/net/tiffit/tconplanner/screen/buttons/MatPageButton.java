@@ -1,9 +1,9 @@
-package net.tiffit.tconplanner.buttons;
+package net.tiffit.tconplanner.screen.buttons;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.util.text.StringTextComponent;
-import net.tiffit.tconplanner.PlannerScreen;
+import net.tiffit.tconplanner.screen.PlannerScreen;
 
 public class MatPageButton extends Button {
     private final boolean right;

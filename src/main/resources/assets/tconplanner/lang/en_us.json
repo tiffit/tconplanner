@@ -8,6 +8,7 @@
   "gui.tconplanner.sort": "Sort: %1$s",
   "gui.tconplanner.bookmark.add": "Bookmark Item",
   "gui.tconplanner.bookmark.remove": "Remove Bookmark",
+  "gui.tconplanner.giveitem": "Give Item",
   "gui.tconplanner.randomize": "Randomize Materials",
   "gui.tconplanner.slots.available": "Available %1$s slots",
   "gui.tconplanner.modifiers.error.incrementnotmax": "The current level must be max before adding a new one",

@@ -1,4 +1,4 @@
-package net.tiffit.tconplanner.buttons;
+package net.tiffit.tconplanner.screen.buttons;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -7,7 +7,7 @@ import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.renderer.ItemRenderer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.text.StringTextComponent;
-import net.tiffit.tconplanner.PlannerScreen;
+import net.tiffit.tconplanner.screen.PlannerScreen;
 import slimeknights.tconstruct.library.materials.definition.IMaterial;
 import slimeknights.tconstruct.library.tools.part.IToolPart;
 

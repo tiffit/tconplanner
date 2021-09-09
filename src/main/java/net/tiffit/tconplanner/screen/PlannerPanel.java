@@ -3,7 +3,6 @@ package net.tiffit.tconplanner.screen;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.util.text.StringTextComponent;
-import net.tiffit.tconplanner.PlannerScreen;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,10 +47,10 @@ public class PlannerPanel extends Widget {
         return result;
     }
 
-    public boolean mouseDragged(double p_231045_1_, double p_231045_3_, int p_231045_5_, double p_231045_6_, double p_231045_8_) {
+    public boolean mouseDragged(double mx, double my, int button, double dx, double dy) {
         boolean result = false;
         for (Widget child : children) {
-            if(child.mouseDragged(p_231045_1_, p_231045_3_, p_231045_5_, p_231045_6_, p_231045_8_))result = true;
+            if(child.mouseDragged(mx, my, button, dx, dy))result = true;
         }
         return result;
     }

@@ -1,9 +1,9 @@
-package net.tiffit.tconplanner.buttons;
+package net.tiffit.tconplanner.screen.buttons;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.Widget;
-import net.tiffit.tconplanner.PlannerScreen;
+import net.tiffit.tconplanner.screen.PlannerScreen;
 import net.tiffit.tconplanner.screen.PlannerPanel;
 
 import java.util.ArrayList;

@@ -1,14 +1,18 @@
-package net.tiffit.tconplanner;
+package net.tiffit.tconplanner.screen;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.multiplayer.PlayerController;
 import net.minecraft.client.util.InputMappings;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.RecipeManager;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraftforge.items.ItemHandlerHelper;
+import net.tiffit.tconplanner.TConPlanner;
 import net.tiffit.tconplanner.data.Blueprint;
 import net.tiffit.tconplanner.data.ModifierInfo;
 import net.tiffit.tconplanner.data.PlannerData;
@@ -205,6 +209,22 @@ public class PlannerScreen extends Screen {
             }
             selectedModifier = null;
             refresh();
+        }
+    }
+
+    public void giveItemstack(ItemStack stack){
+        ItemStack currentStack;
+        PlayerInventory inventory = minecraft.player.inventory;
+        for(int i = 0; i < inventory.items.size(); i++) {
+            currentStack = inventory.items.get(i);
+            if (currentStack.isEmpty()) {
+                int slot = i;
+                if (slot < 9) {
+                    slot += 36;
+                }
+                minecraft.gameMode.handleCreativeModeItemAdd(stack, slot);
+                return;
+            }
         }
     }
 

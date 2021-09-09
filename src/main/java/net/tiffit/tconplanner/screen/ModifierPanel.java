@@ -1,20 +1,18 @@
 package net.tiffit.tconplanner.screen;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextFormatting;
-import net.tiffit.tconplanner.PlannerScreen;
-import net.tiffit.tconplanner.buttons.BannerWidget;
-import net.tiffit.tconplanner.buttons.PaginatedPanel;
-import net.tiffit.tconplanner.buttons.SliderWidget;
-import net.tiffit.tconplanner.buttons.TooltipTextWidget;
-import net.tiffit.tconplanner.buttons.modifiers.ModExitButton;
-import net.tiffit.tconplanner.buttons.modifiers.ModLevelButton;
-import net.tiffit.tconplanner.buttons.modifiers.ModPreviewWidget;
-import net.tiffit.tconplanner.buttons.modifiers.ModifierSelectButton;
+import net.tiffit.tconplanner.screen.buttons.BannerWidget;
+import net.tiffit.tconplanner.screen.buttons.PaginatedPanel;
+import net.tiffit.tconplanner.screen.buttons.SliderWidget;
+import net.tiffit.tconplanner.screen.buttons.TooltipTextWidget;
+import net.tiffit.tconplanner.screen.buttons.modifiers.ModExitButton;
+import net.tiffit.tconplanner.screen.buttons.modifiers.ModLevelButton;
+import net.tiffit.tconplanner.screen.buttons.modifiers.ModPreviewWidget;
+import net.tiffit.tconplanner.screen.buttons.modifiers.ModifierSelectButton;
 import net.tiffit.tconplanner.data.Blueprint;
 import net.tiffit.tconplanner.data.ModifierInfo;
 import net.tiffit.tconplanner.util.DummyTinkersStationInventory;
@@ -42,13 +40,11 @@ public class ModifierPanel extends PlannerPanel{
         int slotIndex = 0;
         for (SlotType slotType : SlotType.getAllSlotTypes()) {
             int slots = tool.getFreeSlots(slotType);
-            if(slots > 0) {
-                addChild(new TooltipTextWidget(- 100 + slotIndex*15,  30,
-                        new StringTextComponent("" + slots),
-                        TranslationUtil.createComponent("slots.available", slotType.getDisplayName()), parent)
-                        .withColor(slotType.getColor().getValue() + 0xff_00_00_00));
-                slotIndex++;
-            }
+            addChild(new TooltipTextWidget(105,  23 + slotIndex*12,
+                    new StringTextComponent("" + slots),
+                    TranslationUtil.createComponent("slots.available", slotType.getDisplayName()), parent)
+                    .withColor(slotType.getColor().getValue() + 0xff_00_00_00));
+            slotIndex++;
         }
 
         //Show modifier buttons
@@ -107,13 +103,7 @@ public class ModifierPanel extends PlannerPanel{
                         1, perLevel, perLevel - blueprint.modStack.getIncrementalDiff(modifier), parent));
             }
 
-            addChild(new ModExitButton(2 + 50 - 30, 150, 60, 20, parent));
+            addChild(new ModExitButton(2 + 50 - 58/2, 115, parent));
         }
-    }
-
-    @Override
-    public void render(MatrixStack stack, int mouseX, int mouseY, float p_230430_4_) {
-        //Screen.fill(stack, x, y, x + width, y + height, 0xff_ff_ff_ff);
-        super.render(stack, mouseX, mouseY, p_230430_4_);
     }
 }

@@ -1,4 +1,4 @@
-package net.tiffit.tconplanner.buttons;
+package net.tiffit.tconplanner.screen.buttons;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import net.minecraft.client.Minecraft;
@@ -10,7 +10,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextFormatting;
-import net.tiffit.tconplanner.PlannerScreen;
+import net.tiffit.tconplanner.screen.PlannerScreen;
 import net.tiffit.tconplanner.data.Blueprint;
 import slimeknights.tconstruct.library.materials.definition.IMaterial;
 import slimeknights.tconstruct.library.recipe.tinkerstation.ValidatedResult;

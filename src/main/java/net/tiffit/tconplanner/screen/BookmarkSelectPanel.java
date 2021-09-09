@@ -1,10 +1,8 @@
 package net.tiffit.tconplanner.screen;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
-import net.tiffit.tconplanner.PlannerScreen;
-import net.tiffit.tconplanner.buttons.BannerWidget;
-import net.tiffit.tconplanner.buttons.BookmarkedButton;
-import net.tiffit.tconplanner.buttons.PaginatedPanel;
+import net.tiffit.tconplanner.screen.buttons.BannerWidget;
+import net.tiffit.tconplanner.screen.buttons.BookmarkedButton;
+import net.tiffit.tconplanner.screen.buttons.PaginatedPanel;
 import net.tiffit.tconplanner.data.Blueprint;
 import net.tiffit.tconplanner.data.PlannerData;
 import net.tiffit.tconplanner.util.TranslationUtil;
@@ -21,11 +19,5 @@ public class BookmarkSelectPanel extends PlannerPanel {
             bookmarkGroup.addChild(new BookmarkedButton(i, bookmarked, parent));
         }
         bookmarkGroup.refresh();
-    }
-
-    @Override
-    public void render(MatrixStack stack, int mouseX, int mouseY, float p_230430_4_) {
-        //Screen.fill(stack, x, y, x + width, y + height, 0xff_ff_ff_ff);
-        super.render(stack, mouseX, mouseY, p_230430_4_);
     }
 }

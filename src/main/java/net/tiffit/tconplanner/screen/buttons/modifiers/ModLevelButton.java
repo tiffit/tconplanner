@@ -1,4 +1,4 @@
-package net.tiffit.tconplanner.buttons.modifiers;
+package net.tiffit.tconplanner.screen.buttons.modifiers;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -8,7 +8,7 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextFormatting;
-import net.tiffit.tconplanner.PlannerScreen;
+import net.tiffit.tconplanner.screen.PlannerScreen;
 import net.tiffit.tconplanner.util.ModifierStack;
 import net.tiffit.tconplanner.util.TranslationUtil;
 

@@ -1,10 +1,10 @@
-package net.tiffit.tconplanner.buttons;
+package net.tiffit.tconplanner.screen.buttons;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.widget.button.Button;
-import net.tiffit.tconplanner.PlannerScreen;
+import net.tiffit.tconplanner.screen.PlannerScreen;
 import slimeknights.tconstruct.tables.client.inventory.library.slots.SlotInformation;
 
 public class ToolTypeButton extends Button {

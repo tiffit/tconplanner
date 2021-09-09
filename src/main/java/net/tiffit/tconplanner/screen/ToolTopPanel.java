@@ -5,12 +5,12 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.SoundEvents;
-import net.tiffit.tconplanner.PlannerScreen;
-import net.tiffit.tconplanner.buttons.IconButton;
-import net.tiffit.tconplanner.buttons.OutputToolWidget;
-import net.tiffit.tconplanner.buttons.ToolPartButton;
+import net.tiffit.tconplanner.screen.buttons.IconButton;
+import net.tiffit.tconplanner.screen.buttons.OutputToolWidget;
+import net.tiffit.tconplanner.screen.buttons.ToolPartButton;
 import net.tiffit.tconplanner.data.Blueprint;
 import net.tiffit.tconplanner.data.PlannerData;
+import net.tiffit.tconplanner.util.Icon;
 import net.tiffit.tconplanner.util.TranslationUtil;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
 import slimeknights.tconstruct.library.tools.part.IToolPart;
@@ -34,16 +34,20 @@ public class ToolTopPanel extends PlannerPanel{
         }
 
         //Add randomize tool button
-        addChild(new IconButton(parent.guiWidth - 70, 88, 176, 104,
+        addChild(new IconButton(parent.guiWidth - 70, 88, new Icon(3, 0),
                 TranslationUtil.createComponent("randomize"), parent, e -> parent.randomize())
                 .withSound(SoundEvents.ENDERMAN_TELEPORT));
 
         if(tool != null){
             addChild(new OutputToolWidget(parent.guiWidth - 34, 58, result, parent));
             boolean bookmarked = data.isBookmarked(blueprint);
-            addChild(new IconButton(parent.guiWidth - 33, 88, 190 + (bookmarked ? 12 : 0), 78,
+            addChild(new IconButton(parent.guiWidth - 33, 88,  new Icon(bookmarked ? 2 : 1, 0),
                     TranslationUtil.createComponent(bookmarked ? "bookmark.remove" : "bookmark.add"), parent, e -> {if(bookmarked) parent.unbookmarkCurrent(); else parent.bookmarkCurrent();})
                     .withSound(bookmarked ? SoundEvents.UI_STONECUTTER_TAKE_RESULT : SoundEvents.BOOK_PAGE_TURN));
+            if(Minecraft.getInstance().player.isCreative()) {
+                addChild(new IconButton(parent.guiWidth - 48, 88, new Icon(4, 0), TranslationUtil.createComponent("giveitem"), parent, e -> parent.giveItemstack(result))
+                        .withSound(SoundEvents.ITEM_PICKUP));
+            }
         }
     }
 

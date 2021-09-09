@@ -1,4 +1,4 @@
-package net.tiffit.tconplanner.buttons.modifiers;
+package net.tiffit.tconplanner.screen.buttons.modifiers;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -11,7 +11,7 @@ import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.text.*;
-import net.tiffit.tconplanner.PlannerScreen;
+import net.tiffit.tconplanner.screen.PlannerScreen;
 import net.tiffit.tconplanner.data.ModifierInfo;
 import net.tiffit.tconplanner.util.DummyTinkersStationInventory;
 import net.tiffit.tconplanner.util.ModifierStateEnum;

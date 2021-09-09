@@ -1,4 +1,4 @@
-package net.tiffit.tconplanner.buttons.modifiers;
+package net.tiffit.tconplanner.screen.buttons.modifiers;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import net.minecraft.client.Minecraft;
@@ -7,7 +7,7 @@ import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.util.text.StringTextComponent;
-import net.tiffit.tconplanner.PlannerScreen;
+import net.tiffit.tconplanner.screen.PlannerScreen;
 
 public class ModPreviewWidget extends Widget {
     private final ItemStack stack;

@@ -1,4 +1,4 @@
-package net.tiffit.tconplanner.buttons;
+package net.tiffit.tconplanner.screen.buttons;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -8,7 +8,7 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.StringTextComponent;
-import net.tiffit.tconplanner.PlannerScreen;
+import net.tiffit.tconplanner.screen.PlannerScreen;
 
 import java.util.function.Consumer;
 
@@ -50,8 +50,10 @@ public class SliderWidget extends Widget {
     }
 
     @Override
-    protected void onDrag(double mx1, double my1, double mx2, double my2) {
-        updateVal(mx1);
+    protected void onDrag(double mx, double my, double dx, double dy) {
+        if(mx >= x - 20 && my >= y && mx <= x + width + 20 && my <= y + width) {
+            updateVal(mx);
+        }
     }
 
     private void updateVal(double mouseX){

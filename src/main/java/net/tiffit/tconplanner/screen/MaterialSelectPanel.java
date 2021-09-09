@@ -1,12 +1,10 @@
 package net.tiffit.tconplanner.screen;
 
 import com.google.common.collect.Lists;
-import com.mojang.blaze3d.matrix.MatrixStack;
 import net.minecraft.util.SoundEvents;
-import net.tiffit.tconplanner.PlannerScreen;
-import net.tiffit.tconplanner.buttons.IconButton;
-import net.tiffit.tconplanner.buttons.MatPageButton;
-import net.tiffit.tconplanner.buttons.MaterialButton;
+import net.tiffit.tconplanner.screen.buttons.IconButton;
+import net.tiffit.tconplanner.screen.buttons.MatPageButton;
+import net.tiffit.tconplanner.screen.buttons.MaterialButton;
 import net.tiffit.tconplanner.data.Blueprint;
 import net.tiffit.tconplanner.util.MaterialSort;
 import net.tiffit.tconplanner.util.TranslationUtil;
@@ -54,15 +52,9 @@ public class MaterialSelectPanel extends PlannerPanel{
             int startX = parent.guiWidth/2 - 6*sorts.size();
             for (int i = 0; i < sorts.size(); i++) {
                 MaterialSort<?> sort = sorts.get(i);
-                addChild(new IconButton(startX + i*12, parent.guiHeight - 30 + 3, sort.iconU, sort.iconV, TranslationUtil.createComponent("sort", sort.text), parent, e -> parent.sort(sort))
+                addChild(new IconButton(startX + i*12, parent.guiHeight - 30 + 3, sort.icon, TranslationUtil.createComponent("sort", sort.text), parent, e -> parent.sort(sort))
                         .withColor(sort == parent.sorter ? Color.WHITE : new Color(0.4f, 0.4f, 0.4f)).withSound(SoundEvents.PAINTING_PLACE));
             }
         }
-    }
-
-    @Override
-    public void render(MatrixStack stack, int mouseX, int mouseY, float p_230430_4_) {
-        //Screen.fill(stack, x, y, x + width, y + height, 0xff_ff_ff_ff);
-        super.render(stack, mouseX, mouseY, p_230430_4_);
     }
 }
