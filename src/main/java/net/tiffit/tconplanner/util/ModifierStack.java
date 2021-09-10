@@ -1,8 +1,10 @@
 package net.tiffit.tconplanner.util;
 
+import com.google.common.collect.ImmutableList;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.nbt.StringNBT;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import net.tiffit.tconplanner.screen.PlannerScreen;
 import net.tiffit.tconplanner.data.ModifierInfo;
@@ -11,12 +13,13 @@ import slimeknights.tconstruct.library.modifiers.Modifier;
 import slimeknights.tconstruct.library.modifiers.ModifierId;
 import slimeknights.tconstruct.library.recipe.modifiers.ModifierRecipeLookup;
 import slimeknights.tconstruct.library.recipe.modifiers.adding.IDisplayModifierRecipe;
+import slimeknights.tconstruct.library.recipe.tinkerstation.ITinkerStationRecipe;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
 
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class ModifierStack {
@@ -24,7 +27,7 @@ public class ModifierStack {
     private final HashMap<ModifierId, Integer> incrementalDiffMap = new HashMap<>();
 
     public void push(ModifierInfo info){
-        stack.push(info);
+        stack.add(info);
     }
 
     public void pop(ModifierInfo info){
@@ -39,8 +42,12 @@ public class ModifierStack {
         return incrementalDiffMap.getOrDefault(modifier.getId(), 0);
     }
 
-    public int getLevel(ModifierInfo info){
-        return (int) stack.stream().filter(info1 -> info1.equals(info)).count();
+    public boolean isRecipeUsed(ITinkerStationRecipe recipe){
+        return stack.stream().anyMatch(info -> ((ITinkerStationRecipe)info.recipe).getId().equals(recipe.getId()));
+    }
+
+    public int getLevel(Modifier modifier){
+        return (int) stack.stream().filter(info1 -> info1.modifier.equals(modifier)).count();
     }
 
     public void applyIncrementals(ToolStack tool){
@@ -53,17 +60,15 @@ public class ModifierStack {
         });
     }
 
-    public void forEach(Consumer<ModifierInfo> consumer){
-        for (ModifierInfo info : stack) {
-            consumer.accept(info);
-        }
+    public List<ModifierInfo> getStack(){
+        return ImmutableList.copyOf(stack);
     }
 
     public CompoundNBT toNBT(){
         CompoundNBT tag = new CompoundNBT();
         ListNBT modList = new ListNBT();
         for (ModifierInfo info : stack) {
-            modList.add(StringNBT.valueOf(info.modifier.getId().toString()));
+            modList.add(StringNBT.valueOf(((ITinkerStationRecipe)info.recipe).getId().toString()));
         }
         tag.put("mods", modList);
         ListNBT diffList = new ListNBT();
@@ -81,11 +86,11 @@ public class ModifierStack {
         stack.clear();
         incrementalDiffMap.clear();
         ListNBT modList = tag.getList("mods", 8);
-        Map<ModifierId, IDisplayModifierRecipe> recipesMap = PlannerScreen.getModifierRecipes().stream().collect(Collectors.toMap(recipe -> recipe.getDisplayResult().getModifier().getId(), recipe -> recipe));
+        Map<ResourceLocation, IDisplayModifierRecipe> recipesMap = PlannerScreen.getModifierRecipes().stream().collect(Collectors.toMap(recipe -> ((ITinkerStationRecipe)recipe).getId(), recipe -> recipe));
         for(int i = 0; i < modList.size(); i++){
-            ModifierId modId = new ModifierId(modList.getString(i));
-            if(recipesMap.containsKey(modId)) {
-                push(new ModifierInfo(recipesMap.get(modId)));
+            ResourceLocation resourceLocation = new ResourceLocation(modList.getString(i));
+            if(recipesMap.containsKey(resourceLocation)) {
+                push(new ModifierInfo(recipesMap.get(resourceLocation)));
             }
         }
         ListNBT diffList = tag.getList("diff", 10);

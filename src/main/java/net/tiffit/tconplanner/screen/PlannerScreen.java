@@ -248,10 +248,18 @@ public class PlannerScreen extends Screen {
     }
 
     public static List<IDisplayModifierRecipe> getModifierRecipes(){
-        Set<ModifierId> modifierNameSet = new HashSet<>();
         RecipeManager recipeManager = Minecraft.getInstance().level.getRecipeManager();
-        return RecipeHelper.getJEIRecipes(recipeManager, RecipeTypes.TINKER_STATION, IDisplayModifierRecipe.class)
-                .stream().filter(e -> modifierNameSet.add(e.getDisplayResult().getModifier().getRegistryName()))
-                .filter(recipe -> recipe instanceof ITinkerStationRecipe).collect(Collectors.toList());
+        List<IDisplayModifierRecipe> jeiRecipes = RecipeHelper.getJEIRecipes(recipeManager, RecipeTypes.TINKER_STATION, IDisplayModifierRecipe.class);
+        List<IDisplayModifierRecipe> cleanedList = new ArrayList<>();
+        for (IDisplayModifierRecipe recipe : jeiRecipes) {
+            if(recipe instanceof ITinkerStationRecipe){
+                boolean contains = cleanedList.stream().anyMatch(recipe1 ->
+                        recipe1.getDisplayResult().getModifier().equals(recipe.getDisplayResult().getModifier()) &&
+                                Objects.equals(recipe1.getSlots(), recipe.getSlots()) &&
+                                recipe1.getMaxLevel() == recipe.getMaxLevel());
+                if(!contains)cleanedList.add(recipe);
+            }
+        }
+        return cleanedList;
     }
 }

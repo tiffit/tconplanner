@@ -2,6 +2,7 @@ package net.tiffit.tconplanner.data;
 
 import slimeknights.tconstruct.library.modifiers.Modifier;
 import slimeknights.tconstruct.library.recipe.modifiers.adding.IDisplayModifierRecipe;
+import slimeknights.tconstruct.library.recipe.tinkerstation.ITinkerStationRecipe;
 import slimeknights.tconstruct.library.tools.SlotType;
 
 import java.util.Objects;
@@ -23,7 +24,7 @@ public class ModifierInfo {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ModifierInfo info = (ModifierInfo) o;
-        return recipe.equals(info.recipe) && modifier.getId().equals(info.modifier.getId());
+        return ((ITinkerStationRecipe)recipe).getId().equals(((ITinkerStationRecipe)info.recipe).getId()) && modifier.getId().equals(info.modifier.getId());
     }
 
     @Override

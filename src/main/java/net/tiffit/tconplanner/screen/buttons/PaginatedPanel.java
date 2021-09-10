@@ -41,7 +41,7 @@ public class PaginatedPanel<T extends Widget> extends PlannerPanel {
     }
 
     public void refresh(int page){
-        totalPages = (int)Math.ceil(allChildren.size() / (float)pageSize);
+        totalPages = Math.max((int)Math.ceil(allChildren.size() / (float)pageSize), 1);
         if(page >= totalPages){
             setPage(totalPages - 1);
             return;

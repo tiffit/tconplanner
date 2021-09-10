@@ -32,7 +32,7 @@ import java.util.Comparator;
 import java.util.List;
 
 public class ModifierPanel extends PlannerPanel{
-    protected static final String KEY_MAX_LEVEL = TConstruct.makeTranslationKey("recipe", "modifier.max_level");
+    public static final String KEY_MAX_LEVEL = TConstruct.makeTranslationKey("recipe", "modifier.max_level");
 
     public ModifierPanel(int x, int y, int width, int height, ItemStack result, ToolStack tool, List<IDisplayModifierRecipe> modifiers, PlannerScreen parent) {
         super(x, y, width, height, parent);
@@ -75,7 +75,7 @@ public class ModifierPanel extends PlannerPanel{
             addChild(new ModPreviewWidget(2 + 50 - 9, 50, result, parent));
             int arrowOffset = 11;
             ModLevelButton addButton = new ModLevelButton(2 + 50 + arrowOffset - 2, 50, 1, parent);
-            ValidatedResult validatedResultAdd = modifier instanceof SingleUseModifier && tool.getModifierLevel(modifier) == 1 ?
+            ValidatedResult validatedResultAdd = modifier instanceof SingleUseModifier && tool.getModifierLevel(modifier) >= 1 ?
                     ValidatedResult.failure(KEY_MAX_LEVEL, modifier.getDisplayName(), 1) :tsrecipe.getValidatedResult(new DummyTinkersStationInventory(result));
             if(!validatedResultAdd.isSuccess()){
                 addButton.disable(validatedResultAdd.getMessage().copy().setStyle(Style.EMPTY.withColor(TextFormatting.RED)));
@@ -98,7 +98,7 @@ public class ModifierPanel extends PlannerPanel{
             addChild(new ModPreviewWidget(subtractButton.x - 2 - 18, 50, subtractButton.isDisabled() ? ItemStack.EMPTY : validatedResultSubtract.getResult(), parent));
             addChild(subtractButton);
             int perLevel = ModifierRecipeLookup.getNeededPerLevel(modifier);
-            if(perLevel > 0 && blueprint.modStack.getLevel(selectedModifier) > 0){
+            if(perLevel > 0 && blueprint.modStack.getLevel(modifier) > 0){
                 addChild(new SliderWidget(2 + 10, 70, 80, 20, val -> {blueprint.modStack.setIncrementalDiff(modifier, perLevel-val); parent.refresh();},
                         1, perLevel, perLevel - blueprint.modStack.getIncrementalDiff(modifier), parent));
             }

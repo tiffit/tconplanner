@@ -54,12 +54,12 @@ public class Blueprint {
         ItemStack built = ToolBuildHandler.buildItemFromMaterials(toolItem, Lists.newArrayList(materials));
         ToolStack stack = ToolStack.from(built);
         if(applyMods) {
-            modStack.forEach(info -> {
+            for (ModifierInfo info : modStack.getStack()) {
                 stack.addModifier(info.modifier, 1);
                 if (info.count != null) {
-                    stack.getPersistentData().addSlots(info.count.getType(), -1);
+                    stack.getPersistentData().addSlots(info.count.getType(), -info.count.getCount());
                 }
-            });
+            }
             modStack.applyIncrementals(stack);
         }
         stack.rebuildStats();
@@ -84,15 +84,18 @@ public class Blueprint {
 
     public ValidatedResult validate(){
         ItemStack is = createOutput(false);
-        AtomicReference<ValidatedResult> result = new AtomicReference<>(null);
-        modStack.forEach(info -> {
-            if(result.get() == null) {
-                ValidatedResult rs = ((ITinkerStationRecipe) info.recipe).getValidatedResult(new DummyTinkersStationInventory(is));
-                if(rs.hasError()) result.set(rs);
+        ValidatedResult result = null;
+        for (ModifierInfo info : modStack.getStack()) {
+            ValidatedResult rs = ((ITinkerStationRecipe) info.recipe).getValidatedResult(new DummyTinkersStationInventory(is));
+            if(rs.hasError()){
+                result = rs;
+                break;
+            }else{
+                is = rs.getResult();
             }
-        });
-        if(result.get() == null)return ValidatedResult.PASS;
-        return result.get();
+        }
+        if(result == null)return ValidatedResult.PASS;
+        return result;
     }
 
     public CompoundNBT toNBT(){

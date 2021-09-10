@@ -11,6 +11,7 @@ import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.text.*;
+import net.tiffit.tconplanner.screen.ModifierPanel;
 import net.tiffit.tconplanner.screen.PlannerScreen;
 import net.tiffit.tconplanner.data.ModifierInfo;
 import net.tiffit.tconplanner.util.DummyTinkersStationInventory;
@@ -43,7 +44,7 @@ public class ModifierSelectButton extends Button {
 
     private final StringTextComponent levelText;
 
-    public ModifierSelectButton(IDisplayModifierRecipe recipe, ModifierStateEnum state, @Nullable ITextComponent error, int level, PlannerScreen parent) {
+    public ModifierSelectButton(IDisplayModifierRecipe recipe, ModifierStateEnum state, @Nullable ITextComponent error, int level, ToolStack tool, PlannerScreen parent) {
         super(0, 0, 100, 18, new StringTextComponent(""), e -> {});
         this.recipe = recipe;
         this.modifier = recipe.getDisplayResult().getModifier();
@@ -54,8 +55,12 @@ public class ModifierSelectButton extends Button {
         List<List<ItemStack>> itemstacks = recipe.getDisplayItems();
         itemstacks.subList(1, itemstacks.size()).forEach(recipeStacks::addAll);
         displayName = level == 0 ? modifier.getDisplayName() : modifier.getDisplayName(level);
-        int maxLevel = modifier instanceof SingleUseModifier ? 1 : recipe.getMaxLevel();
-        levelText = new StringTextComponent(parent.blueprint.modStack.getLevel(new ModifierInfo(recipe)) + "/" +(maxLevel > 0 ? maxLevel : "\u221E"));
+        boolean singleUse = modifier instanceof SingleUseModifier;
+        int maxLevel = singleUse ? 1 : recipe.getMaxLevel();
+        int currentLevel = singleUse ? tool.getModifierLevel(modifier) : parent.blueprint.modStack.getLevel(modifier);
+        if(currentLevel > maxLevel && maxLevel > 0)currentLevel = maxLevel;
+        levelText = new StringTextComponent(currentLevel + "/" +(maxLevel > 0 ? maxLevel : "\u221E"));
+        if(error != null)levelText.withStyle(TextFormatting.DARK_RED);
     }
 
     @Override
@@ -100,7 +105,7 @@ public class ModifierSelectButton extends Button {
     public void renderToolTip(MatrixStack stack, int mouseX, int mouseY) {
         parent.postRenderTasks.add(() -> {
             List<ITextComponent> tooltips = new ArrayList<>(modifier.getDescriptionList());
-            if(state == ModifierStateEnum.UNAVAILABLE)tooltips.add(error.copy().withStyle(ERROR_STYLE));
+            if(error != null)tooltips.add(error.copy().withStyle(ERROR_STYLE));
             parent.renderComponentTooltip(stack, tooltips, mouseX, mouseY);
         });
     }
@@ -135,14 +140,23 @@ public class ModifierSelectButton extends Button {
         ITinkerStationRecipe tsrecipe = (ITinkerStationRecipe) recipe;
         ModifierStateEnum mstate = ModifierStateEnum.UNAVAILABLE;
         ITextComponent error = null;
-        int currentLevel = tstack.getModifierLevel(recipe.getDisplayResult().getModifier());
+        Modifier modifier = recipe.getDisplayResult().getModifier();
+        int currentLevel = tstack.getModifierLevel(modifier);
         if (currentLevel != 0)
             mstate = ModifierStateEnum.APPLIED;
+        ValidatedResult validatedResult = tsrecipe.getValidatedResult(new DummyTinkersStationInventory(stack));
+        if(!validatedResult.isSuccess())error = validatedResult.getMessage();
         else {
-            ValidatedResult validatedResult = tsrecipe.getValidatedResult(new DummyTinkersStationInventory(stack));
-            if (validatedResult.isSuccess()) mstate = ModifierStateEnum.AVAILABLE;
-            else error = validatedResult.getMessage();
+            if(currentLevel >= 1 && modifier instanceof SingleUseModifier){
+                error = ValidatedResult.failure(ModifierPanel.KEY_MAX_LEVEL, modifier.getDisplayName(), 1).getMessage();
+            }else{
+                if(mstate != ModifierStateEnum.APPLIED)mstate = ModifierStateEnum.AVAILABLE;
+            }
         }
-        return new ModifierSelectButton(recipe, mstate, error, currentLevel, screen);
+        if(validatedResult.isSuccess()){
+            if(mstate != ModifierStateEnum.APPLIED)mstate = ModifierStateEnum.AVAILABLE;
+        }
+        else error = validatedResult.getMessage();
+        return new ModifierSelectButton(recipe, mstate, error, currentLevel, tstack, screen);
     }
 }

@@ -1,11 +1,20 @@
 package net.tiffit.tconplanner.util;
 
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.text.Style;
+import net.minecraft.util.text.TextFormatting;
 import net.tiffit.tconplanner.data.Blueprint;
 import net.tiffit.tconplanner.data.ModifierInfo;
+import net.tiffit.tconplanner.screen.buttons.modifiers.ModPreviewWidget;
 import slimeknights.tconstruct.library.modifiers.IncrementalModifier;
+import slimeknights.tconstruct.library.modifiers.Modifier;
+import slimeknights.tconstruct.library.modifiers.SingleUseModifier;
 import slimeknights.tconstruct.library.recipe.modifiers.ModifierRecipeLookup;
+import slimeknights.tconstruct.library.recipe.tinkerstation.ITinkerStationRecipe;
 import slimeknights.tconstruct.library.recipe.tinkerstation.ValidatedResult;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
+
+import static net.tiffit.tconplanner.screen.ModifierPanel.KEY_MAX_LEVEL;
 
 public final class ToolValidator {
 
@@ -18,7 +27,8 @@ public final class ToolValidator {
         ToolStack toolClone = tool.copy();
         int toolBaseLevel = ToolStack.from(bp.createOutput(false)).getModifierLevel(modInfo.modifier);
         int minLevel = Math.max(0, toolBaseLevel);
-        if(bp.modStack.getLevel(modInfo) + toolBaseLevel <= minLevel)return ValidatedResult.failure("gui.tconplanner.modifiers.error.minlevel");
+        if(bp.modStack.getLevel(modInfo.modifier) + toolBaseLevel <= minLevel || !bp.modStack.isRecipeUsed((ITinkerStationRecipe) modInfo.recipe))
+            return ValidatedResult.failure("gui.tconplanner.modifiers.error.minlevel");
         toolClone.removeModifier(modInfo.modifier, 1);
         IncrementalModifier.setAmount(toolClone.getPersistentData(), modInfo.modifier, ModifierRecipeLookup.getNeededPerLevel(modInfo.modifier));
         ValidatedResult validatedResultSubtract = toolClone.validate();
@@ -29,5 +39,6 @@ public final class ToolValidator {
         if(bpResult.hasError())return bpResult;
         return ValidatedResult.success(toolClone.createStack());
     }
+
 
 }
