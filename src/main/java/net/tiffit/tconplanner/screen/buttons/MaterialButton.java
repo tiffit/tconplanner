@@ -40,15 +40,14 @@ public class MaterialButton extends Button {
     @Override
     public void renderButton(MatrixStack stack, int mouseX, int mouseY, float p_230431_4_) {
         Minecraft.getInstance().getItemRenderer().renderGuiItem(this.stack, x, y);
-        if(selected)Screen.fill(stack, x, y, x + width, y + height, 0x55_00_ff_00);
+        int right = x + width;
+        int bottom = y + height;
+        if(selected)Screen.fill(stack, x, y, right, bottom, 0x55_00_ff_00);
         if(errorText != null){
-            stack.pushPose();
-            stack.translate(x, y, 100);
-            Screen.fill(stack, 0, 0, width, height, 0x55_ff_00_00);
-            stack.popPose();
+            Screen.fill(stack, x, y, right, bottom, 0x55_ff_00_00);
         }
         if(isHovered){
-            Screen.fill(stack, x, y, x + width, y + height, 0x80_ffea00);
+            Screen.fill(stack, x, y, right, bottom, 0x80_ffea00);
             renderToolTip(stack, mouseX, mouseY);
         }
     }

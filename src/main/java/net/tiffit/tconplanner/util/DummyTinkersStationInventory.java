@@ -8,7 +8,7 @@ import javax.annotation.Nullable;
 
 public class DummyTinkersStationInventory implements ITinkerStationInventory {
 
-    private ItemStack stack;
+    private final ItemStack stack;
 
     public DummyTinkersStationInventory(ItemStack stack){
         this.stack = stack;

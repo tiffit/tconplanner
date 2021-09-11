@@ -48,6 +48,7 @@ public class PlannerScreen extends Screen {
     public MaterialSort<?> sorter;
     public ModifierInfo selectedModifier;
     public int left, top, guiWidth, guiHeight;
+    private ITextComponent titleText;
 
     public PlannerScreen(TinkerStationScreen child) {
         super(TranslationUtil.createComponent("name"));
@@ -81,6 +82,7 @@ public class PlannerScreen extends Screen {
         buttons.clear();
         children.clear();
         int toolSpace = 20;
+        titleText = blueprint == null ? TranslationUtil.createComponent("notool") : blueprint.toolSlotInfo.getToolForRendering().getHoverName();;
         addButton(new ToolSelectPanel(left - toolSpace * 5, top, toolSpace*5, toolSpace*3 + 23 + 4, tools, this));
         if(data.saved.size() > 0) {
             addButton(new BookmarkSelectPanel(left - toolSpace * 5, top + 15 + 18*4, toolSpace * 5, toolSpace * 5 + 23 + 4, data, this));
@@ -105,8 +107,7 @@ public class PlannerScreen extends Screen {
         renderBackground(stack);
         bindTexture();
         this.blit(stack, left, top, 0, 0, guiWidth, guiHeight);
-        ITextComponent title = blueprint == null ? TranslationUtil.createComponent("notool") : blueprint.toolSlotInfo.getToolForRendering().getHoverName();
-        drawCenteredString(stack, font, title, left + guiWidth / 2, top + 7, 0xffffffff);
+        drawCenteredString(stack, font, titleText, left + guiWidth / 2, top + 7, 0xffffffff);
 
         super.render(stack, mouseX, mouseY, partialTick);
         Runnable task;

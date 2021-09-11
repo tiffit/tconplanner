@@ -7,7 +7,7 @@ import net.minecraft.util.ResourceLocation;
 import net.tiffit.tconplanner.TConPlanner;
 
 public class Icon {
-    public static ResourceLocation ICONS = new ResourceLocation(TConPlanner.MODID, "textures/gui/icons.png");
+    private static final ResourceLocation ICONS = new ResourceLocation(TConPlanner.MODID, "textures/gui/icons.png");
 
     private final int x, y;
 
