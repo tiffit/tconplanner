@@ -14,9 +14,7 @@ displayName="Tinker's Planner" #mandatory
 #credits="Thanks for this example mod goes to Java" #optional
 authors="Tiffit, SpikyStars" #optional
 # The description text for the mod (multi line!) (#mandatory)
-description='''
-Tinker's Planner is a client-side mod which allows you to try out different material combinations for tools before actually making the tool.
-'''
+description="Tinker's Planner is a client-side mod which allows you to try out different material combinations for tools before actually making the tool."
 [[dependencies.tconplanner]] #optional
     modId="forge" #mandatory
     mandatory=true #mandatory
