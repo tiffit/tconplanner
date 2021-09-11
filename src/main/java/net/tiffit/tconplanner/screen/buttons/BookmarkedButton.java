@@ -7,8 +7,8 @@ import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.renderer.ItemRenderer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.text.StringTextComponent;
-import net.tiffit.tconplanner.screen.PlannerScreen;
 import net.tiffit.tconplanner.data.Blueprint;
+import net.tiffit.tconplanner.screen.PlannerScreen;
 
 public class BookmarkedButton extends Button {
 

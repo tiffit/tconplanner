@@ -1,20 +1,12 @@
 package net.tiffit.tconplanner.util;
 
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.text.Style;
-import net.minecraft.util.text.TextFormatting;
 import net.tiffit.tconplanner.data.Blueprint;
 import net.tiffit.tconplanner.data.ModifierInfo;
-import net.tiffit.tconplanner.screen.buttons.modifiers.ModPreviewWidget;
 import slimeknights.tconstruct.library.modifiers.IncrementalModifier;
-import slimeknights.tconstruct.library.modifiers.Modifier;
-import slimeknights.tconstruct.library.modifiers.SingleUseModifier;
 import slimeknights.tconstruct.library.recipe.modifiers.ModifierRecipeLookup;
 import slimeknights.tconstruct.library.recipe.tinkerstation.ITinkerStationRecipe;
 import slimeknights.tconstruct.library.recipe.tinkerstation.ValidatedResult;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
-
-import static net.tiffit.tconplanner.screen.ModifierPanel.KEY_MAX_LEVEL;
 
 public final class ToolValidator {
 

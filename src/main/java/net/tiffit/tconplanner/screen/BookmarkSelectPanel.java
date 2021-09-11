@@ -1,10 +1,10 @@
 package net.tiffit.tconplanner.screen;
 
+import net.tiffit.tconplanner.data.Blueprint;
+import net.tiffit.tconplanner.data.PlannerData;
 import net.tiffit.tconplanner.screen.buttons.BannerWidget;
 import net.tiffit.tconplanner.screen.buttons.BookmarkedButton;
 import net.tiffit.tconplanner.screen.buttons.PaginatedPanel;
-import net.tiffit.tconplanner.data.Blueprint;
-import net.tiffit.tconplanner.data.PlannerData;
 import net.tiffit.tconplanner.util.TranslationUtil;
 
 public class BookmarkSelectPanel extends PlannerPanel {

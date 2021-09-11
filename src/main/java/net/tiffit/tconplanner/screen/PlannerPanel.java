@@ -32,7 +32,7 @@ public class PlannerPanel extends Widget {
     }
 
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        boolean result = false;
+        boolean result = isHovered();
         for (Widget child : children) {
             if(child.mouseClicked(mouseX, mouseY, button))result = true;
         }

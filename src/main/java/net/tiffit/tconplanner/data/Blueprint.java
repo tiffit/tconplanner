@@ -24,7 +24,6 @@ import slimeknights.tconstruct.tables.client.inventory.library.slots.SlotInforma
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class Blueprint {
 

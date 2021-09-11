@@ -2,10 +2,10 @@ package net.tiffit.tconplanner.screen;
 
 import com.google.common.collect.Lists;
 import net.minecraft.util.SoundEvents;
+import net.tiffit.tconplanner.data.Blueprint;
 import net.tiffit.tconplanner.screen.buttons.IconButton;
 import net.tiffit.tconplanner.screen.buttons.MatPageButton;
 import net.tiffit.tconplanner.screen.buttons.MaterialButton;
-import net.tiffit.tconplanner.data.Blueprint;
 import net.tiffit.tconplanner.util.MaterialSort;
 import net.tiffit.tconplanner.util.TranslationUtil;
 import slimeknights.tconstruct.library.materials.MaterialRegistry;
@@ -34,13 +34,13 @@ public class MaterialSelectPanel extends PlannerPanel{
         for (int i = loopMin; i < loopMax; i++) {
             int posIndex = i - loopMin;
             IMaterial mat = usable.get(i);
-            MaterialButton data = new MaterialButton(i, mat, part.withMaterialForDisplay(mat.getIdentifier()), (posIndex % 9) * 18 + 8, parent.guiHeight - 87 + (posIndex / 9) * 18, parent);
+            MaterialButton data = new MaterialButton(i, mat, part.withMaterialForDisplay(mat.getIdentifier()), (posIndex % 9) * 18 + 8, 2 + (posIndex / 9) * 18, parent);
             if(blueprint.materials[parent.selectedPart] == mat)data.selected = true;
             addChild(data);
         }
         //Add material pagination buttons
-        MatPageButton leftPage = new MatPageButton(6, parent.guiHeight - 30, -1, parent);
-        MatPageButton rightPage = new MatPageButton(parent.guiWidth - 6 - 37, parent.guiHeight - 30, 1, parent);
+        MatPageButton leftPage = new MatPageButton(6, height - 30, -1, parent);
+        MatPageButton rightPage = new MatPageButton(width - 6 - 37, height - 30, 1, parent);
         leftPage.active = parent.materialPage > 0;
         rightPage.active = loopMax < usable.size();
         addChild(leftPage);
@@ -49,10 +49,10 @@ public class MaterialSelectPanel extends PlannerPanel{
         Class<? extends IMaterialStats> statClass = MaterialRegistry.getClassForStat(part.getStatType());
         if(statClass != null){
             List<MaterialSort<?>> sorts = MaterialSort.MAP.getOrDefault(statClass, Lists.newArrayList());
-            int startX = parent.guiWidth/2 - 6*sorts.size();
+            int startX = width/2 - 6*sorts.size();
             for (int i = 0; i < sorts.size(); i++) {
                 MaterialSort<?> sort = sorts.get(i);
-                addChild(new IconButton(startX + i*12, parent.guiHeight - 30 + 3, sort.icon, TranslationUtil.createComponent("sort", sort.text), parent, e -> parent.sort(sort))
+                addChild(new IconButton(startX + i*12, height - 30 + 3, sort.icon, TranslationUtil.createComponent("sort", sort.text), parent, e -> parent.sort(sort))
                         .withColor(sort == parent.sorter ? Color.WHITE : new Color(0.4f, 0.4f, 0.4f)).withSound(SoundEvents.PAINTING_PLACE));
             }
         }

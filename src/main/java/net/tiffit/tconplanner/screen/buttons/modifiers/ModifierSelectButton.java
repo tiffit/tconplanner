@@ -11,9 +11,9 @@ import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.text.*;
+import net.tiffit.tconplanner.data.ModifierInfo;
 import net.tiffit.tconplanner.screen.ModifierPanel;
 import net.tiffit.tconplanner.screen.PlannerScreen;
-import net.tiffit.tconplanner.data.ModifierInfo;
 import net.tiffit.tconplanner.util.DummyTinkersStationInventory;
 import net.tiffit.tconplanner.util.ModifierStateEnum;
 import net.tiffit.tconplanner.util.TranslationUtil;
@@ -78,7 +78,17 @@ public class ModifierSelectButton extends Button {
         parent.blit(stack, x, y, 0, 224, 100, 18);
         Minecraft.getInstance().getItemRenderer().renderGuiItem(recipeStacks.get((int)((System.currentTimeMillis() / 1000) % recipeStacks.size())), x + 1, y + 1);
         FontRenderer font = Minecraft.getInstance().font;
-        Screen.drawString(stack, font, displayName, x + 20, y + 2, 0xff_ff_ff_ff);
+
+        stack.pushPose();
+        stack.translate(x + 20, y + 2, 0);
+        float nameWidth = font.width(displayName);
+        int maxWidth = width - 22;
+        if(nameWidth > maxWidth){
+            float scale = maxWidth/nameWidth;
+            stack.scale(scale, scale, 1);
+        }
+        Screen.drawString(stack, font, displayName, 0, 0, 0xff_ff_ff_ff);
+        stack.popPose();
 
         stack.pushPose();
         stack.translate(x + 20, y + 11, 0);

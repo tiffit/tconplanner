@@ -3,8 +3,9 @@ package net.tiffit.tconplanner.screen.buttons;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.Widget;
-import net.tiffit.tconplanner.screen.PlannerScreen;
+import net.tiffit.tconplanner.Config;
 import net.tiffit.tconplanner.screen.PlannerPanel;
+import net.tiffit.tconplanner.screen.PlannerScreen;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -73,21 +74,24 @@ public class PaginatedPanel<T extends Widget> extends PlannerPanel {
     }
 
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if(mouseX >= x && mouseX <= x + width && mouseY >= y + height - 3 && mouseY <= y + height){
-            int clickedPage = (int)Math.min(((mouseX - x)/width) * totalPages, totalPages - 1);
-            setPage(clickedPage);
-            return true;
+        if(totalPages > 1) {
+            if (mouseX >= x && mouseX <= x + width && mouseY >= y + height - 3 && mouseY <= y + height) {
+                int clickedPage = (int) Math.min(((mouseX - x) / width) * totalPages, totalPages - 1);
+                setPage(clickedPage);
+                return true;
+            }
         }
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
     public boolean mouseScrolled(double mouseX, double mouseY, double scroll) {
         boolean result = false;
+        double scrollAmount = scroll * Config.CONFIG.scrollDirection.get().mult;
         int currentPage = parent.getCacheValue(cachePrefix + ".page", 0);
-        if(scroll > 0 && currentPage < totalPages){
+        if(scrollAmount > 0 && currentPage < totalPages){
             setPage(currentPage + 1);
             result = true;
-        }else if(scroll < 0 && currentPage > 0){
+        }else if(scrollAmount < 0 && currentPage > 0){
             setPage(currentPage - 1);
             result = true;
         }

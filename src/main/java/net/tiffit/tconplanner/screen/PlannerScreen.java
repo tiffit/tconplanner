@@ -4,26 +4,22 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.multiplayer.PlayerController;
 import net.minecraft.client.util.InputMappings;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.RecipeManager;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraftforge.items.ItemHandlerHelper;
 import net.tiffit.tconplanner.TConPlanner;
 import net.tiffit.tconplanner.data.Blueprint;
 import net.tiffit.tconplanner.data.ModifierInfo;
 import net.tiffit.tconplanner.data.PlannerData;
-import net.tiffit.tconplanner.screen.*;
 import net.tiffit.tconplanner.util.MaterialSort;
 import net.tiffit.tconplanner.util.TranslationUtil;
 import org.lwjgl.glfw.GLFW;
 import slimeknights.mantle.recipe.RecipeHelper;
 import slimeknights.tconstruct.library.materials.MaterialRegistry;
 import slimeknights.tconstruct.library.materials.definition.IMaterial;
-import slimeknights.tconstruct.library.modifiers.ModifierId;
 import slimeknights.tconstruct.library.recipe.RecipeTypes;
 import slimeknights.tconstruct.library.recipe.modifiers.adding.IDisplayModifierRecipe;
 import slimeknights.tconstruct.library.recipe.tinkerstation.ITinkerStationRecipe;
@@ -91,14 +87,15 @@ public class PlannerScreen extends Screen {
         }
         //Everything in here should only be added if there is a tool selected
         if(blueprint != null){
+            int topPanelSize = 115;
             ItemStack result = blueprint.createOutput();
             ToolStack resultStack = result.isEmpty() ? null : ToolStack.from(result);
-            addButton(new ToolTopPanel(left, top, guiWidth, guiHeight, result, resultStack, data,this));
+            addButton(new ToolTopPanel(left, top, guiWidth, topPanelSize, result, resultStack, data,this));
             if(selectedPart != -1){
-                addButton(new MaterialSelectPanel(left, top, guiWidth, guiHeight, this));
+                addButton(new MaterialSelectPanel(left, top + topPanelSize, guiWidth, guiHeight - topPanelSize, this));
             }
             if(resultStack != null) {
-                addButton(new ModifierPanel(left + guiWidth, top, 100, guiHeight, result, resultStack, modifiers, this));
+                addButton(new ModifierPanel(left + guiWidth, top, 115, guiHeight, result, resultStack, modifiers, this));
             }
         }
     }
