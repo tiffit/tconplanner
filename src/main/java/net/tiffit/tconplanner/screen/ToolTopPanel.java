@@ -5,6 +5,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.SoundEvents;
+import net.tiffit.tconplanner.api.TCSlotPos;
 import net.tiffit.tconplanner.data.Blueprint;
 import net.tiffit.tconplanner.data.PlannerData;
 import net.tiffit.tconplanner.screen.buttons.IconButton;
@@ -14,23 +15,20 @@ import net.tiffit.tconplanner.util.Icon;
 import net.tiffit.tconplanner.util.TranslationUtil;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
 import slimeknights.tconstruct.library.tools.part.IToolPart;
-import slimeknights.tconstruct.tables.client.inventory.library.slots.SlotPosition;
 
 import java.util.List;
 
 public class ToolTopPanel extends PlannerPanel{
 
-    private static final int partsOffsetX = 13, partsOffsetY = 15;
-
     public ToolTopPanel(int x, int y, int width, int height, ItemStack result, ToolStack tool, PlannerData data, PlannerScreen parent) {
         super(x, y, width, height, parent);
         //Add the tool part buttons
         Blueprint blueprint = parent.blueprint;
-        List<SlotPosition> positions = blueprint.toolSlotInfo.getPoints();
+        List<TCSlotPos> positions = blueprint.tool.getSlotPos();
         for(int i = 0; i < blueprint.parts.length; i++){
-            SlotPosition pos = positions.get(i);
+            TCSlotPos pos = positions.get(i);
             IToolPart part = blueprint.parts[i];
-            addChild(new ToolPartButton(i, pos.getX() + partsOffsetX, pos.getY() + partsOffsetY, part, blueprint.materials[i], parent));
+            addChild(new ToolPartButton(i, pos.getX(), pos.getY(), part, blueprint.materials[i], parent));
         }
 
         //Add randomize tool button
@@ -54,7 +52,7 @@ public class ToolTopPanel extends PlannerPanel{
     @Override
     public void render(MatrixStack stack, int mouseX, int mouseY, float p_230430_4_) {
         RenderSystem.pushMatrix();
-        RenderSystem.translated(x + partsOffsetX + 7, y + partsOffsetY + 22, -100);
+        RenderSystem.translated(x + TCSlotPos.partsOffsetX + 7, y + TCSlotPos.partsOffsetY + 22, -100);
         RenderSystem.scalef(3.7F, 3.7F, 1.0F);
         Minecraft.getInstance().getItemRenderer().renderGuiItem(parent.blueprint.toolStack, 0, 0);
         RenderSystem.popMatrix();

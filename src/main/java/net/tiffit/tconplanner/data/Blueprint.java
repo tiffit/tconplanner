@@ -6,6 +6,7 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.nbt.StringNBT;
 import net.minecraft.util.ResourceLocation;
+import net.tiffit.tconplanner.api.TCTool;
 import net.tiffit.tconplanner.util.DummyTinkersStationInventory;
 import net.tiffit.tconplanner.util.ModifierStack;
 import slimeknights.tconstruct.library.materials.MaterialRegistry;
@@ -18,8 +19,6 @@ import slimeknights.tconstruct.library.tools.helper.ToolBuildHandler;
 import slimeknights.tconstruct.library.tools.item.IModifiable;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
 import slimeknights.tconstruct.library.tools.part.IToolPart;
-import slimeknights.tconstruct.tables.client.SlotInformationLoader;
-import slimeknights.tconstruct.tables.client.inventory.library.slots.SlotInformation;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -27,7 +26,7 @@ import java.util.Optional;
 
 public class Blueprint {
 
-    public final SlotInformation toolSlotInfo;
+    public final TCTool tool;
     public final ItemStack toolStack;
     public final IModifiable toolItem;
     public final ToolDefinition toolDefinition;
@@ -35,10 +34,10 @@ public class Blueprint {
     public final IMaterial[] materials;
     public final ModifierStack modStack = new ModifierStack();
 
-    public Blueprint(SlotInformation information){
-        this.toolSlotInfo = information;
-        toolStack = toolSlotInfo.getToolForRendering();
-        toolItem = (IModifiable) toolSlotInfo.getItem();
+    public Blueprint(TCTool tool){
+        this.tool = tool;
+        toolStack = tool.getRenderTool();
+        toolItem = tool.getModifiable();
         toolDefinition = toolItem.getToolDefinition();
         parts = toolDefinition.getRequiredComponents().toArray(new IToolPart[0]);
         materials = new IMaterial[parts.length];
@@ -99,7 +98,7 @@ public class Blueprint {
 
     public CompoundNBT toNBT(){
         CompoundNBT nbt = new CompoundNBT();
-        nbt.putString("tool", Objects.requireNonNull(toolSlotInfo.getItem().getRegistryName()).toString());
+        nbt.putString("tool", Objects.requireNonNull(tool.getItem().getRegistryName()).toString());
         ListNBT matList = new ListNBT();
         for(int i = 0; i < materials.length; i++){
             matList.add(StringNBT.valueOf(materials[i] == null ? "" : materials[i].getIdentifier().toString()));
@@ -111,8 +110,8 @@ public class Blueprint {
 
     public static Blueprint fromNBT(CompoundNBT tag){
         ResourceLocation toolRL = new ResourceLocation(tag.getString("tool"));
-        Optional<SlotInformation> optional = SlotInformationLoader.getSlotInformationList().stream()
-                .filter(info -> !info.isRepair() && Objects.equals(info.getItem().getRegistryName(), toolRL)).findFirst();
+        Optional<TCTool> optional = TCTool.getTools().stream()
+                .filter(tool -> Objects.equals(tool.getItem().getRegistryName(), toolRL)).findFirst();
         if(!optional.isPresent())return null;
         Blueprint bp = new Blueprint(optional.get());
 

@@ -11,6 +11,7 @@ import net.minecraft.item.crafting.RecipeManager;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.tiffit.tconplanner.TConPlanner;
+import net.tiffit.tconplanner.api.TCTool;
 import net.tiffit.tconplanner.data.Blueprint;
 import net.tiffit.tconplanner.data.ModifierInfo;
 import net.tiffit.tconplanner.data.PlannerData;
@@ -25,8 +26,6 @@ import slimeknights.tconstruct.library.recipe.modifiers.adding.IDisplayModifierR
 import slimeknights.tconstruct.library.recipe.tinkerstation.ITinkerStationRecipe;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
 import slimeknights.tconstruct.library.tools.part.IToolPart;
-import slimeknights.tconstruct.tables.client.SlotInformationLoader;
-import slimeknights.tconstruct.tables.client.inventory.library.slots.SlotInformation;
 import slimeknights.tconstruct.tables.client.inventory.table.TinkerStationScreen;
 
 import java.io.IOException;
@@ -39,7 +38,7 @@ public class PlannerScreen extends Screen {
     private final HashMap<String, Object> cache = new HashMap<>();
     public Deque<Runnable> postRenderTasks = new ArrayDeque<>();
     private final TinkerStationScreen child;
-    private final List<SlotInformation> tools = new ArrayList<>();
+    private final List<TCTool> tools = TCTool.getTools();
     private final List<IDisplayModifierRecipe> modifiers;
     private final PlannerData data;
     public Blueprint blueprint;
@@ -54,11 +53,6 @@ public class PlannerScreen extends Screen {
         super(TranslationUtil.createComponent("name"));
         this.child = child;
         data = TConPlanner.DATA;
-        for (SlotInformation info : SlotInformationLoader.getSlotInformationList()) {
-            if (!info.isRepair()) {
-                tools.add(info);
-            }
-        }
         try {
             data.load();
         }catch (Exception ex){
@@ -82,7 +76,7 @@ public class PlannerScreen extends Screen {
         buttons.clear();
         children.clear();
         int toolSpace = 20;
-        titleText = blueprint == null ? TranslationUtil.createComponent("notool") : blueprint.toolSlotInfo.getToolForRendering().getHoverName();;
+        titleText = blueprint == null ? TranslationUtil.createComponent("notool") : blueprint.tool.getRenderTool().getHoverName();
         addButton(new ToolSelectPanel(left - toolSpace * 5, top, toolSpace*5, toolSpace*3 + 23 + 4, tools, this));
         if(data.saved.size() > 0) {
             addButton(new BookmarkSelectPanel(left - toolSpace * 5, top + 15 + 18*4, toolSpace * 5, toolSpace * 5 + 23 + 4, data, this));
@@ -197,7 +191,7 @@ public class PlannerScreen extends Screen {
 
     public void randomize(){
         if(blueprint != null){
-            setBlueprint(new Blueprint(blueprint.toolSlotInfo));
+            setBlueprint(new Blueprint(blueprint.tool));
             Random r = new Random();
             List<IMaterial> materials = new ArrayList<>(MaterialRegistry.getMaterials());
             for (int i = 0; i < blueprint.parts.length; i++) {
