@@ -3,22 +3,21 @@ package net.tiffit.tconplanner.api;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
 import slimeknights.tconstruct.common.TinkerTags;
 import slimeknights.tconstruct.library.tools.item.IModifiable;
 import slimeknights.tconstruct.library.tools.layout.StationSlotLayout;
 import slimeknights.tconstruct.library.tools.layout.StationSlotLayoutLoader;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class TCTool {
     private static List<TCTool> ALL_TOOLS = null;
     private final StationSlotLayout layout;
+    private final ItemStack renderTool;
 
     private TCTool(StationSlotLayout layout){
         this.layout = layout;
+        renderTool = layout.getIcon().getValue(ItemStack.class);
     }
 
     public ITextComponent getName(){
@@ -30,7 +29,7 @@ public class TCTool {
     }
 
     public ItemStack getRenderTool(){
-        return layout.getIcon().getValue(ItemStack.class);
+        return renderTool;
     }
 
     public IModifiable getModifiable(){
@@ -48,8 +47,10 @@ public class TCTool {
     public static List<TCTool> getTools(){
         if(ALL_TOOLS == null){
             ALL_TOOLS = StationSlotLayoutLoader.getInstance().getSortedSlots().stream()
-                    .filter(layout -> TinkerTags.Items.MODIFIABLE.contains(Objects.requireNonNull(layout.getIcon().getValue(ItemStack.class)).getItem()))
-                    .map(TCTool::new).collect(Collectors.toList());
+                    .filter(layout -> {
+                        ItemStack stack = layout.getIcon().getValue(ItemStack.class);
+                        return stack != null && TinkerTags.Items.MODIFIABLE.contains(stack.getItem()) && stack.getItem() instanceof IModifiable;
+                    }).map(TCTool::new).collect(Collectors.toList());
         }
         return ALL_TOOLS;
     }
