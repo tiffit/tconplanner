@@ -1,13 +1,13 @@
 package net.tiffit.tconplanner.api;
 
-import slimeknights.tconstruct.tables.client.inventory.library.slots.SlotPosition;
+import slimeknights.tconstruct.library.tools.layout.LayoutSlot;
 
 public class TCSlotPos {
     public static final int partsOffsetX = 13, partsOffsetY = 15;
 
-    private final SlotPosition pos;
+    private final LayoutSlot pos;
 
-    TCSlotPos(SlotPosition pos){
+    TCSlotPos(LayoutSlot pos){
         this.pos = pos;
     }
 

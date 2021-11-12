@@ -76,7 +76,7 @@ public class PlannerScreen extends Screen {
         buttons.clear();
         children.clear();
         int toolSpace = 20;
-        titleText = blueprint == null ? TranslationUtil.createComponent("notool") : blueprint.tool.getRenderTool().getHoverName();
+        titleText = blueprint == null ? TranslationUtil.createComponent("notool") : blueprint.tool.getName();
         addButton(new ToolSelectPanel(left - toolSpace * 5, top, toolSpace*5, toolSpace*3 + 23 + 4, tools, this));
         if(data.saved.size() > 0) {
             addButton(new BookmarkSelectPanel(left - toolSpace * 5, top + 15 + 18*4, toolSpace * 5, toolSpace * 5 + 23 + 4, data, this));
