@@ -40,7 +40,7 @@ public class ModifierPanel extends PlannerPanel{
         int slotIndex = 0;
         for (SlotType slotType : SlotType.getAllSlotTypes()) {
             int slots = tool.getFreeSlots(slotType);
-            addChild(new TooltipTextWidget(105,  23 + slotIndex*12,
+            addChild(new TooltipTextWidget(108,  23 + slotIndex*12,
                     new StringTextComponent("" + slots),
                     TranslationUtil.createComponent("slots.available", slotType.getDisplayName()), parent)
                     .withColor(slotType.getColor().getValue() + 0xff_00_00_00));

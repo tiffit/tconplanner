@@ -16,11 +16,12 @@ public class PaginatedPanel<T extends Widget> extends PlannerPanel {
     private final List<T> allChildren = new ArrayList<>();
     private final String cachePrefix;
     private final int childWidth, childHeight, spacing, columns, rows, pageSize;
+    int totalRows;
     private int totalPages;
-    private float scrollPageWidth;
+    private float scrollPageHeight;
 
     public PaginatedPanel(int x, int y, int childWidth, int childHeight, int columns, int rows, int spacing, String cachePrefix, PlannerScreen parent) {
-        super(x, y, (childWidth+spacing) * columns - spacing, (childHeight+spacing) * rows - spacing + 4, parent);
+        super(x, y, (childWidth+spacing) * columns - spacing + 4, (childHeight+spacing) * rows - spacing, parent);
         this.childWidth = childWidth;
         this.childHeight = childHeight;
         this.spacing = spacing;
@@ -42,14 +43,15 @@ public class PaginatedPanel<T extends Widget> extends PlannerPanel {
     }
 
     public void refresh(int page){
-        totalPages = Math.max((int)Math.ceil(allChildren.size() / (float)pageSize), 1);
+        totalRows = (int)Math.ceil(allChildren.size()/(double)columns);
+        totalPages = allChildren.size() > pageSize ? totalRows - rows + 1 : 1;
         if(page >= totalPages){
             setPage(totalPages - 1);
             return;
         }
         children.clear();
-        children.addAll(allChildren.subList(page*pageSize, Math.min(allChildren.size(), (page+1)*pageSize)));
-        scrollPageWidth = width/(float)totalPages;
+        children.addAll(allChildren.subList(page*columns, Math.min(allChildren.size(), pageSize + page*columns)));
+        scrollPageHeight = height/(float)(totalPages+rows-1);
         for (int i = 0; i < children.size(); i++) {
             Widget widget = children.get(i);
             widget.x = x + (i % columns) * (childWidth+spacing);
@@ -66,17 +68,17 @@ public class PaginatedPanel<T extends Widget> extends PlannerPanel {
     public void render(MatrixStack stack, int mouseX, int mouseY, float p_230430_4_) {
         super.render(stack, mouseX, mouseY, p_230430_4_);
         if(totalPages > 1) {
-            int scrollY = y + height - 3;
+            int scrollX = x + width - 3;
             int page = parent.getCacheValue(cachePrefix + ".page", 0);
-            Screen.fill(stack, x, scrollY, x + width, scrollY + 3, 0x0f_ffffff + (isHovered ? 0x0a_000000 : 0));
-            Screen.fill(stack, x + (int)(scrollPageWidth*page), scrollY, x + (int)(scrollPageWidth*(page+1)), scrollY + 3, 0x0f_ffffff + (isHovered ? 0x0f_000000 : 0));
+            Screen.fill(stack, scrollX, y, scrollX + 3, y + height, 0x0f_ffffff + (isHovered ? 0x0a_000000 : 0));
+            Screen.fill(stack, scrollX, y + (int)(scrollPageHeight*page), scrollX + 3, y + (int)(scrollPageHeight*(page+rows)), 0x0f_ffffff + (isHovered ? 0x0f_000000 : 0));
         }
     }
 
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if(totalPages > 1) {
-            if (mouseX >= x && mouseX <= x + width && mouseY >= y + height - 3 && mouseY <= y + height) {
-                int clickedPage = (int) Math.min(((mouseX - x) / width) * totalPages, totalPages - 1);
+            if (mouseX >= x + width - 3 && mouseX <= x + width && mouseY >= y && mouseY <= y + height) {
+                int clickedPage = (int) Math.min(((mouseY - y) / height) * totalPages, totalPages - 1);
                 setPage(clickedPage);
                 return true;
             }
