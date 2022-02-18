@@ -13,6 +13,7 @@ import java.util.Objects;
 public class PlannerData {
 
     public final List<Blueprint> saved = new ArrayList<>();
+    public Blueprint starred;
 
     private final File bookmarkFile;
 
@@ -51,6 +52,12 @@ public class PlannerData {
         }
         CompoundNBT data = new CompoundNBT();
         data.put("list", nbt);
+        if(starred != null){
+            CompoundNBT cnbt = starred.toNBT();
+            if(starred.isComplete()){
+                data.put("starred", cnbt);
+            }
+        }
         CompressedStreamTools.write(data, bookmarkFile);
     }
 
@@ -64,6 +71,9 @@ public class PlannerData {
             saved.add(Blueprint.fromNBT(tag));
         }
         saved.removeIf(Objects::isNull);
+        if(data.contains("starred")){
+            starred = Blueprint.fromNBT(data.getCompound("starred"));
+        }
     }
 
 }

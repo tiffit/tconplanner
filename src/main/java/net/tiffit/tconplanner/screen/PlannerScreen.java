@@ -16,6 +16,7 @@ import net.tiffit.tconplanner.data.Blueprint;
 import net.tiffit.tconplanner.data.ModifierInfo;
 import net.tiffit.tconplanner.data.PlannerData;
 import net.tiffit.tconplanner.util.MaterialSort;
+import net.tiffit.tconplanner.util.ModifierStack;
 import net.tiffit.tconplanner.util.TranslationUtil;
 import org.lwjgl.glfw.GLFW;
 import slimeknights.mantle.recipe.RecipeHelper;
@@ -41,11 +42,18 @@ public class PlannerScreen extends Screen {
     private final List<TCTool> tools = TCTool.getTools();
     private final List<IDisplayModifierRecipe> modifiers;
     private final PlannerData data;
+
     public Blueprint blueprint;
+
     public int selectedPart = 0;
     public int materialPage = 0;
     public MaterialSort<?> sorter;
+
     public ModifierInfo selectedModifier;
+
+    public int selectedModifierStackIndex = -1;
+    public ModifierStack modifierStack;
+
     public int left, top, guiWidth, guiHeight;
     private ITextComponent titleText;
 
@@ -117,6 +125,8 @@ public class PlannerScreen extends Screen {
         this.materialPage = 0;
         sorter = null;
         selectedModifier = null;
+        modifierStack = null;
+        selectedModifierStackIndex = -1;
         setSelectedPart(-1);
     }
 
@@ -130,6 +140,8 @@ public class PlannerScreen extends Screen {
     public void setPart(IMaterial material){
         blueprint.materials[selectedPart] = material;
         selectedModifier = null;
+        selectedModifierStackIndex = -1;
+        modifierStack = null;
         refresh();
     }
 
@@ -177,9 +189,34 @@ public class PlannerScreen extends Screen {
         refresh();
     }
 
+    public void starCurrent(){
+        if(blueprint.isComplete()){
+            data.starred = blueprint;
+            try {
+                data.refresh();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        refresh();
+    }
+
     public void unbookmarkCurrent(){
         if(blueprint.isComplete()){
             data.saved.removeIf(blueprint1 -> blueprint1.equals(blueprint));
+            if(blueprint.equals(data.starred))data.starred = null;
+            try {
+                data.refresh();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        refresh();
+    }
+
+    public void unstarCurrent(){
+        if(blueprint.isComplete()){
+            data.starred = null;
             try {
                 data.refresh();
             } catch (IOException e) {

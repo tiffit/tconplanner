@@ -16,7 +16,7 @@ public class PaginatedPanel<T extends Widget> extends PlannerPanel {
     private final List<T> allChildren = new ArrayList<>();
     private final String cachePrefix;
     private final int childWidth, childHeight, spacing, columns, rows, pageSize;
-    int totalRows;
+    private int totalRows;
     private int totalPages;
     private float scrollPageHeight;
 
@@ -62,6 +62,21 @@ public class PaginatedPanel<T extends Widget> extends PlannerPanel {
     private void setPage(int page){
         parent.setCacheValue(cachePrefix + ".page", page);
         refresh(page);
+    }
+
+    public void makeVisible(int index, boolean refresh){
+        if(index >= 0 && index < allChildren.size()){
+            int row = index/columns;
+            int page = parent.getCacheValue(cachePrefix + ".page", 0);
+            if(page > row){
+                parent.setCacheValue(cachePrefix + ".page", row);
+                if(refresh)refresh(row);
+            }
+            else if(page + rows - 1 < row){
+                parent.setCacheValue(cachePrefix + ".page", Math.max(0, row - rows + 1));
+                if(refresh)refresh(row);
+            }
+        }
     }
 
     @Override

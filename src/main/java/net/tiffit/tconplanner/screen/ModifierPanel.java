@@ -7,19 +7,12 @@ import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextFormatting;
 import net.tiffit.tconplanner.data.Blueprint;
 import net.tiffit.tconplanner.data.ModifierInfo;
-import net.tiffit.tconplanner.screen.buttons.BannerWidget;
-import net.tiffit.tconplanner.screen.buttons.PaginatedPanel;
-import net.tiffit.tconplanner.screen.buttons.SliderWidget;
-import net.tiffit.tconplanner.screen.buttons.TooltipTextWidget;
-import net.tiffit.tconplanner.screen.buttons.modifiers.ModExitButton;
-import net.tiffit.tconplanner.screen.buttons.modifiers.ModLevelButton;
-import net.tiffit.tconplanner.screen.buttons.modifiers.ModPreviewWidget;
-import net.tiffit.tconplanner.screen.buttons.modifiers.ModifierSelectButton;
-import net.tiffit.tconplanner.util.DummyTinkersStationInventory;
-import net.tiffit.tconplanner.util.ToolValidator;
-import net.tiffit.tconplanner.util.TranslationUtil;
+import net.tiffit.tconplanner.screen.buttons.*;
+import net.tiffit.tconplanner.screen.buttons.modifiers.*;
+import net.tiffit.tconplanner.util.*;
 import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.library.modifiers.Modifier;
+import slimeknights.tconstruct.library.modifiers.ModifierId;
 import slimeknights.tconstruct.library.modifiers.SingleUseModifier;
 import slimeknights.tconstruct.library.recipe.modifiers.ModifierRecipeLookup;
 import slimeknights.tconstruct.library.recipe.modifiers.adding.IDisplayModifierRecipe;
@@ -29,6 +22,7 @@ import slimeknights.tconstruct.library.tools.SlotType;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
 
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 
 public class ModifierPanel extends PlannerPanel{
@@ -46,14 +40,53 @@ public class ModifierPanel extends PlannerPanel{
                     .withColor(slotType.getColor().getValue() + 0xff_00_00_00));
             slotIndex++;
         }
-
-        //Show modifier buttons
         addChild(new BannerWidget(7, 0, TranslationUtil.createComponent("banner.modifiers"), parent));
         int modGroupStartY = 23;
         int modGroupStartX = 2;
         Blueprint blueprint = parent.blueprint;
         ModifierInfo selectedModifier = parent.selectedModifier;
-        if(selectedModifier == null) {
+        ModifierStack modifierStack = parent.modifierStack;
+
+        //Show modifier stack
+        if(modifierStack != null){
+            HashMap<ModifierId, Integer> levelCount = new HashMap<>();
+            PaginatedPanel<ModifierStackButton> stackGroup = new PaginatedPanel<>(modGroupStartX, modGroupStartY, 100, 18, 1, 5, 2, "modifierstackgroup", parent);
+            addChild(stackGroup);
+            ToolStack displayStack = ToolStack.from(blueprint.createOutput(false));
+            List<ModifierInfo> modStack = modifierStack.getStack();
+            Blueprint resultingBlueprint = parent.blueprint.clone();
+            resultingBlueprint.modStack = modifierStack;
+            ValidatedResult validatedResult = resultingBlueprint.validate();
+            boolean isValid = !validatedResult.hasError();
+            for (int i = 0; i < modStack.size(); i++) {
+                ModifierInfo info = modStack.get(i);
+                int newLevel = levelCount.getOrDefault(info.modifier.getId(), 0) + 1;
+                levelCount.put(info.modifier.getId(), newLevel);
+                displayStack.addModifier(info.modifier, 1);
+                if (info.count != null) {
+                    displayStack.getPersistentData().addSlots(info.count.getType(), -info.count.getCount());
+                }
+                displayStack.rebuildStats();
+                stackGroup.addChild(new ModifierStackButton(info, i, newLevel, displayStack.copy().createStack(), parent));
+            }
+            stackGroup.refresh();
+            addChild(new TextButton(2 + 50 - 58 / 2, 158, TranslationUtil.createComponent("modifierstack.save"), () -> {
+                if(isValid) {
+                    parent.blueprint.modStack = parent.modifierStack;
+                    parent.modifierStack = null;
+                    parent.refresh();
+                }
+            }, parent).withColor(isValid ? 0x50ff50 : 0x1a0000).withTooltip(isValid ? null : validatedResult.getMessage()));
+            addChild(new TextButton(2 + 50 - 58 / 2, 180, TranslationUtil.createComponent("modifierstack.cancel"), () -> {
+                parent.modifierStack = null;
+                parent.refresh();
+            }, parent).withColor(0xe02121));
+
+            if(parent.selectedModifierStackIndex != -1){
+                addChild(new StackMoveButton(2 + 50 - 9, 130, true, stackGroup, parent));
+                addChild(new StackMoveButton(2 + 50 - 9, 141, false, stackGroup, parent));
+            }
+        }else if(selectedModifier == null) { //Show list of modifiers
             PaginatedPanel<ModifierSelectButton> modifiersGroup = new PaginatedPanel<>(modGroupStartX, modGroupStartY, 100, 18, 1, 9, 2, "modifiersgroup", parent);
             addChild(modifiersGroup);
             for (IDisplayModifierRecipe recipe : modifiers) {
@@ -63,7 +96,13 @@ public class ModifierPanel extends PlannerPanel{
             }
             modifiersGroup.sort(Comparator.comparingInt(value -> value.state.ordinal()));
             modifiersGroup.refresh();
-        } else {
+            addChild(new IconButton(100, 0, new Icon(5, 0),
+                    TranslationUtil.createComponent("editmodifierstack"), parent, e -> {
+                parent.modifierStack = blueprint.clone().modStack;
+                parent.selectedModifierStackIndex = -1;
+                parent.refresh();
+            }));
+        } else { //Add/remove a modifier
             ModifierSelectButton modSelectButton = ModifierSelectButton.create(selectedModifier.recipe, tool, result, parent);
             modSelectButton.x = modGroupStartX;
             modSelectButton.y = modGroupStartY;
@@ -76,11 +115,11 @@ public class ModifierPanel extends PlannerPanel{
             int arrowOffset = 11;
             ModLevelButton addButton = new ModLevelButton(2 + 50 + arrowOffset - 2, 50, 1, parent);
             ValidatedResult validatedResultAdd = modifier instanceof SingleUseModifier && tool.getModifierLevel(modifier) >= 1 ?
-                    ValidatedResult.failure(KEY_MAX_LEVEL, modifier.getDisplayName(), 1) :tsrecipe.getValidatedResult(new DummyTinkersStationInventory(result));
-            if(!validatedResultAdd.isSuccess()){
+                    ValidatedResult.failure(KEY_MAX_LEVEL, modifier.getDisplayName(), 1) : tsrecipe.getValidatedResult(new DummyTinkersStationInventory(result));
+            if (!validatedResultAdd.isSuccess()) {
                 addButton.disable(validatedResultAdd.getMessage().copy().setStyle(Style.EMPTY.withColor(TextFormatting.RED)));
                 addChild(new ModPreviewWidget(addButton.x + addButton.getWidth() + 2, 50, ItemStack.EMPTY, parent));
-            }else if(blueprint.modStack.getIncrementalDiff(modifier) > 0){
+            } else if (blueprint.modStack.getIncrementalDiff(modifier) > 0) {
                 addButton.disable(TranslationUtil.createComponent("modifiers.error.incrementnotmax").setStyle(Style.EMPTY.withColor(TextFormatting.RED)));
                 addChild(new ModPreviewWidget(addButton.x + addButton.getWidth() + 2, 50, ItemStack.EMPTY, parent));
             } else {
@@ -92,18 +131,23 @@ public class ModifierPanel extends PlannerPanel{
 
             ModLevelButton subtractButton = new ModLevelButton(2 + 50 - arrowOffset - 18, 50, -1, parent);
             ValidatedResult validatedResultSubtract = ToolValidator.validateModRemoval(blueprint, tool, selectedModifier);
-            if(validatedResultSubtract.hasError()){
-                subtractButton.disable(((IFormattableTextComponent)validatedResultSubtract.getMessage()).setStyle(Style.EMPTY.withColor(TextFormatting.RED)));
+            if (validatedResultSubtract.hasError()) {
+                subtractButton.disable(((IFormattableTextComponent) validatedResultSubtract.getMessage()).setStyle(Style.EMPTY.withColor(TextFormatting.RED)));
             }
             addChild(new ModPreviewWidget(subtractButton.x - 2 - 18, 50, subtractButton.isDisabled() ? ItemStack.EMPTY : validatedResultSubtract.getResult(), parent));
             addChild(subtractButton);
             int perLevel = ModifierRecipeLookup.getNeededPerLevel(modifier);
-            if(perLevel > 0 && blueprint.modStack.getLevel(modifier) > 0){
-                addChild(new SliderWidget(2 + 10, 70, 80, 20, val -> {blueprint.modStack.setIncrementalDiff(modifier, perLevel-val); parent.refresh();},
-                        1, perLevel, perLevel - blueprint.modStack.getIncrementalDiff(modifier), parent));
+            if (perLevel > 0 && blueprint.modStack.getLevel(modifier) > 0) {
+                addChild(new SliderWidget(2 + 10, 70, 80, 20, val -> {
+                    blueprint.modStack.setIncrementalDiff(modifier, perLevel - val);
+                    parent.refresh();
+                },1, perLevel, perLevel - blueprint.modStack.getIncrementalDiff(modifier), parent));
             }
 
-            addChild(new ModExitButton(2 + 50 - 58/2, 115, parent));
+            addChild(new TextButton(2 + 50 - 58 / 2, 115, TranslationUtil.createComponent("modifiers.exit"), () -> {
+                parent.selectedModifier = null;
+                parent.refresh();
+            }, parent).withColor(0xe02121));
         }
     }
 }

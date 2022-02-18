@@ -17,5 +17,10 @@
   "gui.tconplanner.modifiers.usedslot": "Uses an %1$s slot",
   "gui.tconplanner.modifiers.usedslots": "Uses %1$s %2$s slots",
   "gui.tconplanner.modifiers.addlevel": "Add Level",
-  "gui.tconplanner.modifiers.removelevel": "Remove Level"
+  "gui.tconplanner.modifiers.removelevel": "Remove Level",
+  "gui.tconplanner.editmodifierstack": "Modify \"Modifier Stack\"",
+  "gui.tconplanner.modifierstack.cancel": "Cancel",
+  "gui.tconplanner.modifierstack.save": "Save",
+  "gui.tconplanner.modifierstack.moveup": "Move Up",
+  "gui.tconplanner.modifierstack.movedown": "Move Down"
 }

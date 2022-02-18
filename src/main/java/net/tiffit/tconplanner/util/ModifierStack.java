@@ -34,6 +34,11 @@ public class ModifierStack {
         stack.removeLastOccurrence(info);
     }
 
+    public void moveDown(int index){
+        ModifierInfo info = stack.remove(index);
+        stack.add(index + 1, info);
+    }
+
     public void setIncrementalDiff(Modifier modifier, int amount){
         incrementalDiffMap.put(modifier.getId(), MathHelper.clamp(amount,0, ModifierRecipeLookup.getNeededPerLevel(modifier)));
     }

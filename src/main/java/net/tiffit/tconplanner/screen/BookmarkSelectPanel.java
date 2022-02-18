@@ -16,7 +16,8 @@ public class BookmarkSelectPanel extends PlannerPanel {
         addChild(bookmarkGroup);
         for (int i = 0; i < data.saved.size(); i++) {
             Blueprint bookmarked = data.saved.get(i);
-            bookmarkGroup.addChild(new BookmarkedButton(i, bookmarked, parent));
+            boolean starred = bookmarked.equals(data.starred);
+            bookmarkGroup.addChild(new BookmarkedButton(i, bookmarked, starred, parent));
         }
         bookmarkGroup.refresh();
     }

@@ -16,12 +16,14 @@ public class BookmarkedButton extends Button {
     private final ItemStack stack;
     private final int index;
     private final Blueprint blueprint;
+    private final boolean starred;
     private boolean selected;
 
-    public BookmarkedButton(int index, Blueprint blueprint, PlannerScreen parent){
+    public BookmarkedButton(int index, Blueprint blueprint, boolean starred, PlannerScreen parent){
         super(0, 0, 18, 18, new StringTextComponent(""), button -> parent.setBlueprint(blueprint.clone()));
         this.index = index;
         this.blueprint = blueprint;
+        this.starred = starred;
         this.parent = parent;
         stack = blueprint.createOutput();
         this.selected = parent.blueprint != null && parent.blueprint.equals(blueprint);

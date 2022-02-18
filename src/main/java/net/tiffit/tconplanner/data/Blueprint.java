@@ -32,7 +32,7 @@ public class Blueprint {
     public final ToolDefinition toolDefinition;
     public final IToolPart[] parts;
     public final IMaterial[] materials;
-    public final ModifierStack modStack = new ModifierStack();
+    public ModifierStack modStack = new ModifierStack();
 
     public Blueprint(TCTool tool){
         this.tool = tool;
