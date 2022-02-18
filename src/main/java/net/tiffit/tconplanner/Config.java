@@ -14,8 +14,8 @@ public class Config {
 
     public Config(ForgeConfigSpec.Builder builder){
         builder.push("UI Button");
-        buttonX = builder.comment("X position of the \"Open Planner\" button. Default: 155").defineInRange("X Position", 155, -300, 300);
-        buttonY = builder.comment("Y position of the \"Open Planner\" button. Default: 8").defineInRange("Y Position", 8, -300, 300);
+        buttonX = builder.comment("X position of the \"Open Planner\" button. Default: 155").defineInRange("X Position", 18, -300, 300);
+        buttonY = builder.comment("Y position of the \"Open Planner\" button. Default: 8").defineInRange("Y Position", 116, -300, 300);
         builder.pop();
         builder.push("Planner");
         scrollDirection = builder.comment("The scroll direction for paginated lists").defineEnum("Scroll Direction", ScrollDirectionEnum.DOWN);
@@ -37,5 +37,4 @@ public class Config {
             this.mult = mult;
         }
     }
-
 }
