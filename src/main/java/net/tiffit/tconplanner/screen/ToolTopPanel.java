@@ -40,11 +40,11 @@ public class ToolTopPanel extends PlannerPanel{
             addChild(new OutputToolWidget(parent.guiWidth - 34, 58, result, parent));
             boolean bookmarked = data.isBookmarked(blueprint);
             boolean starred = blueprint.equals(data.starred);
-            addChild(new IconButton(parent.guiWidth - 33, 88,  new Icon(bookmarked ? 2 : 1, 0),
+            addChild(new IconButton(parent.guiWidth - 33, 88, new Icon(bookmarked ? 2 : 1, 0),
                     TranslationUtil.createComponent(bookmarked ? "bookmark.remove" : "bookmark.add"), parent, e -> {if(bookmarked) parent.unbookmarkCurrent(); else parent.bookmarkCurrent();})
                     .withSound(bookmarked ? SoundEvents.UI_STONECUTTER_TAKE_RESULT : SoundEvents.BOOK_PAGE_TURN));
             if(bookmarked){
-                addChild(new IconButton(parent.guiWidth - 18, 88,  new Icon(starred ? 7 : 6, 0),
+                addChild(new IconButton(parent.guiWidth - 18, 88, new Icon(starred ? 7 : 6, 0),
                         TranslationUtil.createComponent(starred ? "star.remove" : "star.add"), parent, e -> {if(starred) parent.unstarCurrent(); else parent.starCurrent();})
                         .withSound(starred ? SoundEvents.UI_STONECUTTER_TAKE_RESULT : SoundEvents.BOOK_PAGE_TURN));
             }

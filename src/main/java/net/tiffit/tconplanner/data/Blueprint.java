@@ -15,6 +15,7 @@ import slimeknights.tconstruct.library.materials.definition.MaterialId;
 import slimeknights.tconstruct.library.recipe.tinkerstation.ITinkerStationRecipe;
 import slimeknights.tconstruct.library.recipe.tinkerstation.ValidatedResult;
 import slimeknights.tconstruct.library.tools.ToolDefinition;
+import slimeknights.tconstruct.library.tools.definition.PartRequirement;
 import slimeknights.tconstruct.library.tools.helper.ToolBuildHandler;
 import slimeknights.tconstruct.library.tools.item.IModifiable;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
@@ -23,6 +24,7 @@ import slimeknights.tconstruct.library.tools.part.IToolPart;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class Blueprint {
 
@@ -39,7 +41,7 @@ public class Blueprint {
         toolStack = tool.getRenderTool();
         toolItem = tool.getModifiable();
         toolDefinition = toolItem.getToolDefinition();
-        parts = toolDefinition.getRequiredComponents().toArray(new IToolPart[0]);
+        parts = toolDefinition.getData().getParts().stream().map(PartRequirement::getPart).filter(Objects::nonNull).toArray(IToolPart[]::new);
         materials = new IMaterial[parts.length];
     }
 
@@ -81,15 +83,15 @@ public class Blueprint {
     }
 
     public ValidatedResult validate(){
-        ItemStack is = createOutput(false);
+        ToolStack ts = ToolStack.from(createOutput(false));
         ValidatedResult result = null;
         for (ModifierInfo info : modStack.getStack()) {
-            ValidatedResult rs = ((ITinkerStationRecipe) info.recipe).getValidatedResult(new DummyTinkersStationInventory(is));
+            ValidatedResult rs = ((ITinkerStationRecipe) info.recipe).getValidatedResult(new DummyTinkersStationInventory(ts.createStack()));
             if(rs.hasError()){
                 result = rs;
                 break;
             }else{
-                is = rs.getResult();
+                ts.addModifier(info.modifier, 1);
             }
         }
         if(result == null)return ValidatedResult.PASS;

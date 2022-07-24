@@ -33,6 +33,7 @@ public class MaterialButton extends Button {
             Blueprint cloned = parent.blueprint.clone();
             cloned.materials[parent.selectedPart] = material;
             ValidatedResult result = ToolStack.from(cloned.createOutput()).validate();
+            if(!result.hasError())result = cloned.validate();
             if(result.hasError())errorText = result.getMessage().copy().withStyle(TextFormatting.DARK_RED);
         }
     }

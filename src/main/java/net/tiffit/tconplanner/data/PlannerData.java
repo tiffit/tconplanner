@@ -16,6 +16,7 @@ public class PlannerData {
     public Blueprint starred;
 
     private final File bookmarkFile;
+    private boolean hasLoaded;
 
     public PlannerData(File folder){
         bookmarkFile = new File(folder, "bookmark.dat");
@@ -53,15 +54,22 @@ public class PlannerData {
         CompoundNBT data = new CompoundNBT();
         data.put("list", nbt);
         if(starred != null){
-            CompoundNBT cnbt = starred.toNBT();
             if(starred.isComplete()){
+                CompoundNBT cnbt = starred.toNBT();
                 data.put("starred", cnbt);
             }
         }
         CompressedStreamTools.write(data, bookmarkFile);
     }
 
+    public void firstLoad() throws IOException {
+        if(!hasLoaded) {
+            load();
+        }
+    }
+
     public void load() throws IOException {
+        hasLoaded = true;
         saved.clear();
         CompoundNBT data = CompressedStreamTools.read(bookmarkFile);
         assert data != null;
@@ -73,6 +81,8 @@ public class PlannerData {
         saved.removeIf(Objects::isNull);
         if(data.contains("starred")){
             starred = Blueprint.fromNBT(data.getCompound("starred"));
+        }else{
+            starred = null;
         }
     }
 

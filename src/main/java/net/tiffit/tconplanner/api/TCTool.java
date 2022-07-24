@@ -44,6 +44,10 @@ public class TCTool {
         return layout.getInputSlots().stream().map(TCSlotPos::new).collect(Collectors.toList());
     }
 
+    public StationSlotLayout getLayout(){
+        return layout;
+    }
+
     public static List<TCTool> getTools(){
         if(ALL_TOOLS == null){
             ALL_TOOLS = StationSlotLayoutLoader.getInstance().getSortedSlots().stream()
