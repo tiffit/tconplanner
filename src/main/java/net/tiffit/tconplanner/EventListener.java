@@ -24,6 +24,7 @@ import net.tiffit.tconplanner.screen.PlannerScreen;
 import net.tiffit.tconplanner.screen.ext.ExtIconButton;
 import net.tiffit.tconplanner.util.Icon;
 import net.tiffit.tconplanner.util.TranslationUtil;
+import slimeknights.tconstruct.library.materials.definition.MaterialId;
 import slimeknights.tconstruct.library.tools.definition.PartRequirement;
 import slimeknights.tconstruct.library.tools.layout.LayoutSlot;
 import slimeknights.tconstruct.library.tools.layout.StationSlotLayout;
@@ -77,18 +78,19 @@ public class EventListener {
                     if(e.getMouseX() > slotX && e.getMouseY() > slotY && e.getMouseX() < slotX + 16 && e.getMouseY() < slotY + 16){
                         if(screen.getSlotUnderMouse() != null){
                             ItemStack stack = screen.getSlotUnderMouse().getItem();
+                            MaterialId material = starred.materials[i].getIdentifier();
                             if(stack.isEmpty()){
                                 ms.pushPose();
                                 ms.translate(0, 0, 101);
                                 Screen.fill(ms, slotX, slotY, slotX + 16, slotY + 16, 0x5a000050);
                                 ms.popPose();
-                                screen.renderComponentTooltip(ms, Lists.newArrayList(new StringTextComponent(TextFormatting.DARK_RED + "Missing Tool Part:"), part.withMaterialForDisplay(starred.materials[i].getIdentifier()).getDisplayName()), e.getMouseX(), e.getMouseY());
-                            }else if(!starred.materials[i].getIdentifier().equals(part.getMaterialId(stack).orElse(null))){
+                                screen.renderComponentTooltip(ms, Lists.newArrayList(new StringTextComponent(TextFormatting.DARK_RED + "Missing Tool Part:"), part.withMaterialForDisplay(material).getDisplayName()), e.getMouseX(), e.getMouseY());
+                            }else if(!material.equals(part.getMaterialId(stack).orElse(null))){
                                 ms.pushPose();
                                 ms.translate(0, 0, 101);
                                 Screen.fill(ms, slotX, slotY, slotX + 16, slotY + 16, 0x5aff0000);
                                 ms.popPose();
-                                screen.renderComponentTooltip(ms, Lists.newArrayList(new StringTextComponent(TextFormatting.DARK_RED + "Incorrect tool part! Should be:"), part.withMaterialForDisplay(starred.materials[i].getIdentifier()).getDisplayName()), e.getMouseX(), e.getMouseY() - 30);
+                                screen.renderComponentTooltip(ms, Lists.newArrayList(new StringTextComponent(TextFormatting.DARK_RED + "Incorrect tool part! Should be:"), part.withMaterialForDisplay(material).getDisplayName()), e.getMouseX(), e.getMouseY() - 30);
                             }
                         }
                     }

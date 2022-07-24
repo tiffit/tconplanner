@@ -14,6 +14,7 @@ import slimeknights.tconstruct.library.materials.definition.IMaterial;
 import slimeknights.tconstruct.library.materials.definition.MaterialId;
 import slimeknights.tconstruct.library.recipe.tinkerstation.ITinkerStationRecipe;
 import slimeknights.tconstruct.library.recipe.tinkerstation.ValidatedResult;
+import slimeknights.tconstruct.library.tools.SlotType;
 import slimeknights.tconstruct.library.tools.ToolDefinition;
 import slimeknights.tconstruct.library.tools.definition.PartRequirement;
 import slimeknights.tconstruct.library.tools.helper.ToolBuildHandler;
@@ -21,9 +22,7 @@ import slimeknights.tconstruct.library.tools.item.IModifiable;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
 import slimeknights.tconstruct.library.tools.part.IToolPart;
 
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Blueprint {
@@ -34,6 +33,9 @@ public class Blueprint {
     public final ToolDefinition toolDefinition;
     public final IToolPart[] parts;
     public final IMaterial[] materials;
+
+    public final Map<SlotType, Integer> creativeSlots = new HashMap<>();
+
     public ModifierStack modStack = new ModifierStack();
 
     public Blueprint(TCTool tool){
@@ -53,6 +55,7 @@ public class Blueprint {
         if(!isComplete())return ItemStack.EMPTY;
         ItemStack built = ToolBuildHandler.buildItemFromMaterials(toolItem, Lists.newArrayList(materials));
         ToolStack stack = ToolStack.from(built);
+        creativeSlots.forEach((slotType, amount) -> stack.getPersistentData().addSlots(slotType, amount));
         if(applyMods) {
             for (ModifierInfo info : modStack.getStack()) {
                 stack.addModifier(info.modifier, 1);
@@ -64,6 +67,21 @@ public class Blueprint {
         }
         stack.rebuildStats();
         return stack.createStack();
+    }
+
+    public void addCreativeSlot(SlotType type){
+        addCreativeSlot(type, 1);
+    }
+
+    public void addCreativeSlot(SlotType type, int amount){
+        creativeSlots.compute(type, (slotType, val) -> {
+            if(val == null)val = 0;
+            return val + amount;
+        });
+    }
+
+    public void removeCreativeSlot(SlotType type){
+        addCreativeSlot(type, -1);
     }
 
     public boolean isComplete(){
@@ -107,6 +125,16 @@ public class Blueprint {
         }
         nbt.put("materials", matList);
         nbt.put("modifiers", modStack.toNBT());
+
+        if(creativeSlots.size() > 0){
+            CompoundNBT creativeSlotsNbt = new CompoundNBT();
+            creativeSlots.forEach((slotType, integer) -> {
+                if(integer > 0) {
+                    creativeSlotsNbt.putInt(slotType.getName(), integer);
+                }
+            });
+            nbt.put("creativeSlots", creativeSlotsNbt);
+        }
         return nbt;
     }
 
@@ -129,6 +157,16 @@ public class Blueprint {
 
         CompoundNBT modifiers = tag.getCompound("modifiers");
         bp.modStack.fromNBT(modifiers);
+
+        if(tag.contains("creativeSlots")){
+            CompoundNBT creativeSlotsTag = tag.getCompound("creativeSlots");
+            for (String key : creativeSlotsTag.getAllKeys()) {
+                SlotType type = SlotType.getIfPresent(key);
+                if(type != null){
+                    bp.creativeSlots.put(type, creativeSlotsTag.getInt(key));
+                }
+            }
+        }
         return bp;
     }
 

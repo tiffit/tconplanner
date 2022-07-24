@@ -1,10 +1,7 @@
 package net.tiffit.tconplanner.screen;
 
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.text.IFormattableTextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.Style;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.*;
 import net.tiffit.tconplanner.data.Blueprint;
 import net.tiffit.tconplanner.data.ModifierInfo;
 import net.tiffit.tconplanner.screen.buttons.*;
@@ -21,23 +18,38 @@ import slimeknights.tconstruct.library.recipe.tinkerstation.ValidatedResult;
 import slimeknights.tconstruct.library.tools.SlotType;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 
 public class ModifierPanel extends PlannerPanel{
     public static final String KEY_MAX_LEVEL = TConstruct.makeTranslationKey("recipe", "modifier.max_level");
+    private final static SlotType[] ValidSlots = new SlotType[]{SlotType.UPGRADE, SlotType.ABILITY};
 
     public ModifierPanel(int x, int y, int width, int height, ItemStack result, ToolStack tool, List<IDisplayModifierRecipe> modifiers, PlannerScreen parent) {
         super(x, y, width, height, parent);
         //Show available modifier slots
         int slotIndex = 0;
-        for (SlotType slotType : SlotType.getAllSlotTypes()) {
+        for (SlotType slotType : ValidSlots) {
             int slots = tool.getFreeSlots(slotType);
-            addChild(new TooltipTextWidget(108,  23 + slotIndex*12,
-                    new StringTextComponent("" + slots),
-                    TranslationUtil.createComponent("slots.available", slotType.getDisplayName()), parent)
-                    .withColor(slotType.getColor().getValue() + 0xff_00_00_00));
+            List<ITextComponent> tooltips = new ArrayList<>();
+            ITextComponent coloredName = new StringTextComponent("")
+                    .withStyle(Style.EMPTY.withColor(Color.fromRgb(slotType.getColor().getValue() + 0xff_00_00_00)))
+                    .append(slotType.getDisplayName())
+                    .append(new StringTextComponent("").withStyle(TextFormatting.RESET));
+            tooltips.add(TranslationUtil.createComponent("slots.available", coloredName));
+            tooltips.add(new StringTextComponent(""));
+            tooltips.add(new StringTextComponent("Left-click to add creative slot"));
+            tooltips.add(new StringTextComponent("Right-click to remove creative slot"));
+            IFormattableTextComponent slotsRemaining = new StringTextComponent("" + slots);
+            int creativeSlots = parent.blueprint.creativeSlots.getOrDefault(slotType, 0);
+            if(creativeSlots > 0){
+                slotsRemaining.append(" (+" + parent.blueprint.creativeSlots.get(slotType) + ")");
+            }
+            addChild(new TooltipTextWidget(108, 23 + slotIndex * 12, TextPosEnum.LEFT, slotsRemaining, tooltips, parent)
+                    .withColor(slotType.getColor().getValue() + 0xff_00_00_00)
+                    .withClickHandler((mouseX, mouseY, mouseButton) -> handleCreativeSlotButton(slotType, slots, creativeSlots, mouseButton)));
             slotIndex++;
         }
         addChild(new BannerWidget(7, 0, TranslationUtil.createComponent("banner.modifiers"), parent));
@@ -149,5 +161,21 @@ public class ModifierPanel extends PlannerPanel{
                 parent.refresh();
             }, parent).withColor(0xe02121));
         }
+    }
+
+    private boolean handleCreativeSlotButton(SlotType type, int remainingSlots, int creativeSlots, int mb){
+        if(mb == 0){
+            parent.blueprint.addCreativeSlot(type);
+            parent.refresh();
+            return true;
+        }
+        if(mb == 1){
+            if(creativeSlots > 0 && remainingSlots > 0){
+                parent.blueprint.removeCreativeSlot(type);
+                parent.refresh();
+                return true;
+            }
+        }
+        return false;
     }
 }

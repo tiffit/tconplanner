@@ -19,6 +19,8 @@ public class TooltipTextWidget extends Widget {
     private final FontRenderer font;
     private final List<ITextComponent> tooltip;
 
+    private IOnTooltipTextWidgetClick onClick;
+
     public TooltipTextWidget(int x, int y, ITextComponent text, ITextComponent tooltip, PlannerScreen parent) {
         this(x, y, TextPosEnum.LEFT, text, tooltip, parent);
     }
@@ -44,6 +46,11 @@ public class TooltipTextWidget extends Widget {
         return this;
     }
 
+    public TooltipTextWidget withClickHandler(IOnTooltipTextWidgetClick onClick){
+        this.onClick = onClick;
+        return this;
+    }
+
     @Override
     public void renderButton(MatrixStack stack, int mouseX, int mouseY, float p_230431_4_) {
         drawString(stack, font, getMessage(), x, y, color);
@@ -58,5 +65,15 @@ public class TooltipTextWidget extends Widget {
     }
 
     @Override
-    public void playDownSound(SoundHandler soundHandler) {}
+    public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
+        if (this.active && this.visible) {
+            return clicked(mouseX, mouseY) && onClick != null && onClick.onClick(mouseX, mouseY, mouseButton);
+        } else {
+            return false;
+        }
+    }
+
+    public static interface IOnTooltipTextWidgetClick {
+        boolean onClick(double mouseX, double mouseY, int mouseButton);
+    }
 }
