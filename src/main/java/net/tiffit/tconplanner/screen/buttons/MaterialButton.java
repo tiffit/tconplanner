@@ -6,15 +6,25 @@ import net.minecraft.client.audio.SimpleSound;
 import net.minecraft.client.audio.SoundHandler;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.button.Button;
+import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.SoundEvents;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.*;
+import net.minecraftforge.fml.client.gui.GuiUtils;
 import net.tiffit.tconplanner.data.Blueprint;
 import net.tiffit.tconplanner.screen.PlannerScreen;
+import net.tiffit.tconplanner.util.TranslationUtil;
+import slimeknights.tconstruct.TConstruct;
+import slimeknights.tconstruct.library.materials.MaterialRegistry;
 import slimeknights.tconstruct.library.materials.definition.IMaterial;
+import slimeknights.tconstruct.library.modifiers.Modifier;
+import slimeknights.tconstruct.library.modifiers.ModifierEntry;
 import slimeknights.tconstruct.library.recipe.tinkerstation.ValidatedResult;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
+import slimeknights.tconstruct.library.tools.part.ToolPartItem;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MaterialButton extends Button {
 
@@ -54,11 +64,32 @@ public class MaterialButton extends Button {
     }
 
     @Override
-    public void renderToolTip(MatrixStack stack, int mouseX, int mouseY) {
+    public void renderToolTip(MatrixStack ms, int mouseX, int mouseY) {
         if(errorText == null) {
-            parent.postRenderTasks.add(() -> parent.renderItemTooltip(stack, this.stack, mouseX, mouseY));
+            parent.postRenderTasks.add(() -> {
+                List<ITextComponent> tooltip = new ArrayList<>();
+                if(Screen.hasControlDown() && stack.getItem() instanceof ToolPartItem){
+                    ToolPartItem part = (ToolPartItem)stack.getItem();
+                    tooltip.add(part.getName(stack));
+                    List<ModifierEntry> entries = MaterialRegistry.getInstance().getTraits(material.getIdentifier(), part.getStatType());
+                    for (ModifierEntry entry : entries) {
+                        Modifier modifier = entry.getModifier();
+                        tooltip.add(new StringTextComponent("").append(modifier.getDisplayName(entry.getLevel())).withStyle(TextFormatting.UNDERLINE));
+                        Color c = Color.fromRgb(modifier.getColor());
+                        for (ITextComponent comp : modifier.getDescriptionList(entry.getLevel())) {
+                            tooltip.add(new StringTextComponent("").append(comp).withStyle(Style.EMPTY.withColor(c)));
+                        }
+                    }
+                }else{
+                    tooltip.addAll(stack.getTooltipLines(parent.getMinecraft().player, ITooltipFlag.TooltipFlags.NORMAL));
+                    if(!Screen.hasControlDown()){
+                        tooltip.add(TranslationUtil.createComponent("parts.modifier_descriptions", TConstruct.makeTranslation("key", "ctrl").withStyle(TextFormatting.AQUA, TextFormatting.ITALIC)));
+                    }
+                }
+                parent.renderWrappedToolTip(ms, tooltip, mouseX, mouseY);
+            });
         }else {
-            parent.postRenderTasks.add(() -> parent.renderTooltip(stack, errorText, mouseX, mouseY));
+            parent.postRenderTasks.add(() -> parent.renderTooltip(ms, errorText, mouseX, mouseY));
         }
     }
 

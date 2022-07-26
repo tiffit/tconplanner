@@ -22,5 +22,6 @@
   "gui.tconplanner.modifierstack.cancel": "Cancel",
   "gui.tconplanner.modifierstack.save": "Save",
   "gui.tconplanner.modifierstack.moveup": "Move Up",
-  "gui.tconplanner.modifierstack.movedown": "Move Down"
+  "gui.tconplanner.modifierstack.movedown": "Move Down",
+  "gui.tconplanner.parts.modifier_descriptions": "Hold %1$s for modifiers"
 }
