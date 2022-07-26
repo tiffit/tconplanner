@@ -61,6 +61,16 @@ public class EventListener {
                 Minecraft mc = screen.getMinecraft();
                 mc.setScreen(new PlannerScreen(screen));
             }, screen));
+            e.addWidget(new ExtIconButton(screen.cornerX + 34, screen.cornerY + 60, plannerIcon, TranslationUtil.createComponent("importtool"), action -> {
+                Slot slot = screen.getContainer().getSlot(0);
+                if(!slot.getItem().isEmpty()){
+                    Minecraft mc = screen.getMinecraft();
+                    mc.setScreen(new PlannerScreen(screen, ToolStack.from(slot.getItem())));
+                }
+            }, screen).withEnabledFunc(() -> {
+                Slot slot = screen.getContainer().getSlot(0);
+                return !slot.getItem().isEmpty() && ToolStack.isInitialized(slot.getItem());
+            }));
         }
     }
 

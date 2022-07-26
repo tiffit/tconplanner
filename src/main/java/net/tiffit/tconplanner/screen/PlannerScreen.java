@@ -23,6 +23,7 @@ import org.lwjgl.glfw.GLFW;
 import slimeknights.mantle.recipe.RecipeHelper;
 import slimeknights.tconstruct.library.materials.MaterialRegistry;
 import slimeknights.tconstruct.library.materials.definition.IMaterial;
+import slimeknights.tconstruct.library.modifiers.ModifierEntry;
 import slimeknights.tconstruct.library.recipe.RecipeTypes;
 import slimeknights.tconstruct.library.recipe.modifiers.adding.IDisplayModifierRecipe;
 import slimeknights.tconstruct.library.recipe.tinkerstation.ITinkerStationRecipe;
@@ -69,6 +70,18 @@ public class PlannerScreen extends Screen {
         }
 
         modifiers = getModifierRecipes();
+    }
+
+    public PlannerScreen(TinkerStationScreen child, ToolStack stack) {
+        this(child);
+        Optional<TCTool> optionalTCTool = TCTool.getTools().stream().filter(tool -> tool.getModifiable().getToolDefinition().getId().equals(stack.getDefinition().getId())).findAny();
+        if(optionalTCTool.isPresent()){
+            blueprint = new Blueprint(optionalTCTool.get());
+            for (int i = 0; i < blueprint.materials.length; i++) {
+                blueprint.materials[i] = stack.getMaterial(i);
+            }
+            selectedPart = -1;
+        }
     }
 
     @Override
