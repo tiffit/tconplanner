@@ -9,6 +9,7 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
@@ -38,12 +39,24 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Mod.EventBusSubscriber(Dist.CLIENT)
 public class EventListener {
     private static final Icon plannerIcon = new Icon(0, 0);
 
     private static StationSlotLayout layout = null;
+    private static boolean starredLayout = false;
+    private static Field currentLayoutField;
+
+    static {
+        try {
+            currentLayoutField = TinkerStationScreen.class.getDeclaredField("currentLayout");
+            currentLayoutField.setAccessible(true);
+        } catch (NoSuchFieldException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     @SubscribeEvent
     public static void onScreenInit(GuiScreenEvent.InitGuiEvent.Post e){
@@ -61,13 +74,18 @@ public class EventListener {
                 Minecraft mc = screen.getMinecraft();
                 mc.setScreen(new PlannerScreen(screen));
             }, screen));
-            e.addWidget(new ExtIconButton(screen.cornerX + 34, screen.cornerY + 60, plannerIcon, TranslationUtil.createComponent("importtool"), action -> {
+            boolean isAnvil = Objects.equals(screen.getTileEntity().getBlockState().getBlock().getRegistryName(), new ResourceLocation("tconstruct:tinkers_anvil"));
+            int importX = screen.cornerX, importY = screen.cornerY;
+            importX += (isAnvil ? Config.CONFIG.importButtonXAnvil : Config.CONFIG.importButtonXStation).get();
+            importY += (isAnvil ? Config.CONFIG.importButtonYAnvil : Config.CONFIG.importButtonYStation).get();
+            e.addWidget(new ExtIconButton(importX, importY, plannerIcon, TranslationUtil.createComponent("importtool"), action -> {
                 Slot slot = screen.getContainer().getSlot(0);
                 if(!slot.getItem().isEmpty()){
                     Minecraft mc = screen.getMinecraft();
                     mc.setScreen(new PlannerScreen(screen, ToolStack.from(slot.getItem())));
                 }
             }, screen).withEnabledFunc(() -> {
+                if(!layout.isMain())return false;
                 Slot slot = screen.getContainer().getSlot(0);
                 return !slot.getItem().isEmpty() && ToolStack.isInitialized(slot.getItem());
             }));
@@ -78,7 +96,7 @@ public class EventListener {
     public static void onScreenDraw(GuiScreenEvent.DrawScreenEvent.Post e){
         if(e.getGui() instanceof TinkerStationScreen) {
             TinkerStationScreen screen = (TinkerStationScreen) e.getGui();
-            if(layout != null){
+            if(starredLayout){
                 Blueprint starred = TConPlanner.DATA.starred;
                 MatrixStack ms = e.getMatrixStack();
                 for (int i = 0; i < layout.getInputSlots().size(); i++) {
@@ -118,18 +136,10 @@ public class EventListener {
     }
 
     private static void updateLayout(TinkerStationScreen screen){
-        PlannerData data = TConPlanner.DATA;
         try {
-            if(data.starred != null){
-                Field currentLayoutField = TinkerStationScreen.class.getDeclaredField("currentLayout");
-                currentLayoutField.setAccessible(true);
-                StationSlotLayout layout = (StationSlotLayout) currentLayoutField.get(screen);
-                if(layout == data.starred.tool.getLayout()){
-                    EventListener.layout = layout;
-                }else{
-                    EventListener.layout = null;
-                }
-            }
+            PlannerData data = TConPlanner.DATA;
+            layout = (StationSlotLayout) currentLayoutField.get(screen);
+            starredLayout = data.starred != null && layout == data.starred.tool.getLayout();
         } catch (Exception ex) {
             ex.printStackTrace();
         }
