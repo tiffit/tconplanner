@@ -13,7 +13,7 @@ import net.tiffit.tconplanner.util.Icon;
 
 public class BookmarkedButton extends Button {
 
-    private static final Icon STAR_ICON = new Icon(6, 0);
+    public static final Icon STAR_ICON = new Icon(6, 0);
 
     private final PlannerScreen parent;
     private final ItemStack stack;
@@ -42,7 +42,7 @@ public class BookmarkedButton extends Button {
         renderer.renderGuiItem(this.stack, x + 1, y + 1);
         if(starred){
             stack.pushPose();
-            stack.translate(x + 11, y + 11, 0);
+            stack.translate(x + 11, y + 11, 105);
             stack.scale(0.5f, 0.5f, 0.5f);
             STAR_ICON.render(parent, stack, 0, 0);
             stack.popPose();
