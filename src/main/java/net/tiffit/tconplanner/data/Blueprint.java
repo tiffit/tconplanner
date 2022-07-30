@@ -12,6 +12,7 @@ import net.tiffit.tconplanner.util.ModifierStack;
 import slimeknights.tconstruct.library.materials.MaterialRegistry;
 import slimeknights.tconstruct.library.materials.definition.IMaterial;
 import slimeknights.tconstruct.library.materials.definition.MaterialId;
+import slimeknights.tconstruct.library.recipe.modifiers.adding.IDisplayModifierRecipe;
 import slimeknights.tconstruct.library.recipe.tinkerstation.ITinkerStationRecipe;
 import slimeknights.tconstruct.library.recipe.tinkerstation.ValidatedResult;
 import slimeknights.tconstruct.library.tools.SlotType;
@@ -104,12 +105,18 @@ public class Blueprint {
         ToolStack ts = ToolStack.from(createOutput(false));
         ValidatedResult result = null;
         for (ModifierInfo info : modStack.getStack()) {
-            ValidatedResult rs = ((ITinkerStationRecipe) info.recipe).getValidatedResult(new DummyTinkersStationInventory(ts.createStack()));
+            IDisplayModifierRecipe recipe = info.recipe;
+            ValidatedResult rs = ((ITinkerStationRecipe)recipe).getValidatedResult(new DummyTinkersStationInventory(ts.createStack()));
             if(rs.hasError()){
                 result = rs;
                 break;
             }else{
                 ts.addModifier(info.modifier, 1);
+                SlotType type = recipe.getSlotType();
+                SlotType.SlotCount count = recipe.getSlots();
+                if(type != null && count != null){
+                    ts.getPersistentData().addSlots(type, -count.getCount());
+                }
             }
         }
         if(result == null)return ValidatedResult.PASS;
@@ -133,7 +140,9 @@ public class Blueprint {
                     creativeSlotsNbt.putInt(slotType.getName(), integer);
                 }
             });
-            nbt.put("creativeSlots", creativeSlotsNbt);
+            if(creativeSlotsNbt.size() > 0){
+                nbt.put("creativeSlots", creativeSlotsNbt);
+            }
         }
         return nbt;
     }
