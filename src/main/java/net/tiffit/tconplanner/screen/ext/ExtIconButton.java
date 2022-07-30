@@ -12,12 +12,15 @@ import net.minecraft.util.SoundEvent;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
+import net.tiffit.tconplanner.EventListener;
 import net.tiffit.tconplanner.screen.PlannerScreen;
 import net.tiffit.tconplanner.util.Icon;
 
 import java.awt.*;
 import java.util.List;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ExtIconButton extends Button {
 
@@ -67,7 +70,7 @@ public class ExtIconButton extends Button {
         icon.render(screen, stack, x, y);
         RenderSystem.color4f(1f, 1f, 1f, 1f);
         if (this.isHovered()) {
-            this.renderToolTip(stack, mouseX, mouseY);
+            EventListener.postRenderQueue.offer(() -> this.renderToolTip(stack, mouseX, mouseY));
         }
     }
 

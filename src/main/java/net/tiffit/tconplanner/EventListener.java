@@ -41,11 +41,14 @@ import slimeknights.tconstruct.tables.client.inventory.table.TinkerStationScreen
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.concurrent.LinkedBlockingQueue;
 
 @Mod.EventBusSubscriber(Dist.CLIENT)
 public class EventListener {
     private static final Icon plannerIcon = new Icon(0, 0);
     private static final Icon importIcon = new Icon(8, 0);
+
+    public static final Queue<Runnable> postRenderQueue = new LinkedBlockingQueue<>();
 
     private static StationSlotLayout layout = null;
     private static boolean starredLayout = false;
@@ -69,6 +72,7 @@ public class EventListener {
 
     @SubscribeEvent
     public static void onScreenInit(GuiScreenEvent.InitGuiEvent.Post e) {
+        postRenderQueue.clear();
         if (e.getGui() instanceof TinkerStationScreen) {
             TinkerStationScreen screen = (TinkerStationScreen) e.getGui();
             Minecraft mc = screen.getMinecraft();
@@ -165,12 +169,16 @@ public class EventListener {
                 BookmarkedButton.STAR_ICON.render(screen, ms, 0, 0);
                 ms.popPose();
             }
+            while(postRenderQueue.size() > 0) {
+                postRenderQueue.poll().run();
+            }
         }
     }
 
     @SubscribeEvent
     public static void onScreenDraw(GuiScreenEvent.DrawScreenEvent.Pre e) {
         if(e.getGui() instanceof TinkerStationScreen){
+            postRenderQueue.clear();
             updateLayout((TinkerStationScreen) e.getGui(), forceNextUpdate);
         }
     }
