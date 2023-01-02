@@ -2,6 +2,7 @@ package net.tiffit.tconplanner;
 
 import com.google.common.collect.Lists;
 import com.mojang.blaze3d.matrix.MatrixStack;
+import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.Widget;
@@ -12,7 +13,6 @@ import net.minecraft.inventory.container.ClickType;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
@@ -34,13 +34,18 @@ import slimeknights.tconstruct.library.tools.layout.StationSlotLayout;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
 import slimeknights.tconstruct.library.tools.part.IToolPart;
 import slimeknights.tconstruct.library.tools.part.ToolPartItem;
+import slimeknights.tconstruct.tables.block.table.ScorchedAnvilBlock;
+import slimeknights.tconstruct.tables.block.table.TinkersAnvilBlock;
 import slimeknights.tconstruct.tables.client.inventory.SlotButtonItem;
 import slimeknights.tconstruct.tables.client.inventory.module.TinkerStationButtonsScreen;
 import slimeknights.tconstruct.tables.client.inventory.table.TinkerStationScreen;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 @Mod.EventBusSubscriber(Dist.CLIENT)
@@ -90,7 +95,8 @@ public class EventListener {
                 mc.setScreen(new PlannerScreen(screen));
             }, screen));
 
-            boolean isAnvil = Objects.equals(screen.getTileEntity().getBlockState().getBlock().getRegistryName(), new ResourceLocation("tconstruct:tinkers_anvil"));
+            Block stationBlock = Objects.requireNonNull(screen.getTileEntity()).getBlockState().getBlock();
+            boolean isAnvil = stationBlock instanceof ScorchedAnvilBlock || stationBlock instanceof TinkersAnvilBlock;
             int importX = screen.cornerX, importY = screen.cornerY;
             importX += (isAnvil ? Config.CONFIG.importButtonXAnvil : Config.CONFIG.importButtonXStation).get();
             importY += (isAnvil ? Config.CONFIG.importButtonYAnvil : Config.CONFIG.importButtonYStation).get();
