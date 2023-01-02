@@ -1,11 +1,10 @@
 package net.tiffit.tconplanner.data;
 
-import com.google.common.collect.Lists;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.ListNBT;
-import net.minecraft.nbt.StringNBT;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import net.tiffit.tconplanner.api.TCTool;
 import net.tiffit.tconplanner.util.DummyTinkersStationInventory;
 import net.tiffit.tconplanner.util.ModifierStack;
@@ -16,15 +15,15 @@ import slimeknights.tconstruct.library.recipe.modifiers.adding.IDisplayModifierR
 import slimeknights.tconstruct.library.recipe.tinkerstation.ITinkerStationRecipe;
 import slimeknights.tconstruct.library.recipe.tinkerstation.ValidatedResult;
 import slimeknights.tconstruct.library.tools.SlotType;
-import slimeknights.tconstruct.library.tools.ToolDefinition;
 import slimeknights.tconstruct.library.tools.definition.PartRequirement;
+import slimeknights.tconstruct.library.tools.definition.ToolDefinition;
 import slimeknights.tconstruct.library.tools.helper.ToolBuildHandler;
 import slimeknights.tconstruct.library.tools.item.IModifiable;
+import slimeknights.tconstruct.library.tools.nbt.MaterialNBT;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
 import slimeknights.tconstruct.library.tools.part.IToolPart;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class Blueprint {
 
@@ -54,12 +53,12 @@ public class Blueprint {
 
     public ItemStack createOutput(boolean applyMods){
         if(!isComplete())return ItemStack.EMPTY;
-        ItemStack built = ToolBuildHandler.buildItemFromMaterials(toolItem, Lists.newArrayList(materials));
+        ItemStack built = ToolBuildHandler.buildItemFromMaterials(toolItem, MaterialNBT.of(materials));
         ToolStack stack = ToolStack.from(built);
         creativeSlots.forEach((slotType, amount) -> stack.getPersistentData().addSlots(slotType, amount));
         if(applyMods) {
             for (ModifierInfo info : modStack.getStack()) {
-                stack.addModifier(info.modifier, 1);
+                stack.addModifier(info.modifier.getId(), 1);
                 if (info.count != null) {
                     stack.getPersistentData().addSlots(info.count.getType(), -info.count.getCount());
                 }
@@ -111,7 +110,7 @@ public class Blueprint {
                 result = rs;
                 break;
             }else{
-                ts.addModifier(info.modifier, 1);
+                ts.addModifier(info.modifier.getId(), 1);
                 SlotType type = recipe.getSlotType();
                 SlotType.SlotCount count = recipe.getSlots();
                 if(type != null && count != null){
@@ -123,18 +122,18 @@ public class Blueprint {
         return result;
     }
 
-    public CompoundNBT toNBT(){
-        CompoundNBT nbt = new CompoundNBT();
+    public CompoundTag toNBT(){
+        CompoundTag nbt = new CompoundTag();
         nbt.putString("tool", Objects.requireNonNull(tool.getItem().getRegistryName()).toString());
-        ListNBT matList = new ListNBT();
+        ListTag matList = new ListTag();
         for(int i = 0; i < materials.length; i++){
-            matList.add(StringNBT.valueOf(materials[i] == null ? "" : materials[i].getIdentifier().toString()));
+            matList.add(StringTag.valueOf(materials[i] == null ? "" : materials[i].getIdentifier().toString()));
         }
         nbt.put("materials", matList);
         nbt.put("modifiers", modStack.toNBT());
 
         if(creativeSlots.size() > 0){
-            CompoundNBT creativeSlotsNbt = new CompoundNBT();
+            CompoundTag creativeSlotsNbt = new CompoundTag();
             creativeSlots.forEach((slotType, integer) -> {
                 if(integer > 0) {
                     creativeSlotsNbt.putInt(slotType.getName(), integer);
@@ -147,14 +146,14 @@ public class Blueprint {
         return nbt;
     }
 
-    public static Blueprint fromNBT(CompoundNBT tag){
+    public static Blueprint fromNBT(CompoundTag tag){
         ResourceLocation toolRL = new ResourceLocation(tag.getString("tool"));
         Optional<TCTool> optional = TCTool.getTools().stream()
                 .filter(tool -> Objects.equals(tool.getItem().getRegistryName(), toolRL)).findFirst();
         if(!optional.isPresent())return null;
         Blueprint bp = new Blueprint(optional.get());
 
-        ListNBT materials = tag.getList("materials", 8);
+        ListTag materials = tag.getList("materials", 8);
         for(int i = 0; i < materials.size(); i++){
             String id = materials.getString(i);
             if("".equals(id))continue;
@@ -164,11 +163,11 @@ public class Blueprint {
             }
         }
 
-        CompoundNBT modifiers = tag.getCompound("modifiers");
+        CompoundTag modifiers = tag.getCompound("modifiers");
         bp.modStack.fromNBT(modifiers);
 
         if(tag.contains("creativeSlots")){
-            CompoundNBT creativeSlotsTag = tag.getCompound("creativeSlots");
+            CompoundTag creativeSlotsTag = tag.getCompound("creativeSlots");
             for (String key : creativeSlotsTag.getAllKeys()) {
                 SlotType type = SlotType.getIfPresent(key);
                 if(type != null){

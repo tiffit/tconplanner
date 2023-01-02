@@ -1,19 +1,22 @@
 package net.tiffit.tconplanner.screen.buttons.modifiers;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.text.*;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.world.item.ItemStack;
 import net.tiffit.tconplanner.data.ModifierInfo;
 import net.tiffit.tconplanner.screen.PlannerScreen;
 import net.tiffit.tconplanner.util.TranslationUtil;
 import slimeknights.tconstruct.library.modifiers.Modifier;
 import slimeknights.tconstruct.library.recipe.modifiers.adding.IDisplayModifierRecipe;
 import slimeknights.tconstruct.library.tools.SlotType;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,12 +26,12 @@ public class ModifierStackButton extends Button {
     private final IDisplayModifierRecipe recipe;
     private final ModifierInfo modifierInfo;
     private final PlannerScreen parent;
-    private final ITextComponent displayName;
+    private final Component displayName;
     private final ItemStack display;
     private final int index;
 
     public ModifierStackButton(ModifierInfo modifierInfo, int index, int level, ItemStack display, PlannerScreen parent) {
-        super(0, 0, 100, 18, new StringTextComponent(""), e -> {
+        super(0, 0, 100, 18, new TextComponent(""), e -> {
         });
         this.modifierInfo = modifierInfo;
         this.parent = parent;
@@ -40,16 +43,16 @@ public class ModifierStackButton extends Button {
     }
 
     @Override
-    public void renderButton(MatrixStack stack, int mouseX, int mouseY, float p_230431_4_) {
+    public void renderButton(PoseStack stack, int mouseX, int mouseY, float p_230431_4_) {
         PlannerScreen.bindTexture();
         RenderSystem.enableBlend();
         if(parent.selectedModifierStackIndex == index){
-            RenderSystem.color4f(255/255f, 200/255f, 0f, 1f);
+            RenderSystem.setShaderColor(255/255f, 200/255f, 0f, 1f);
         }
         parent.blit(stack, x, y, 0, 224, 100, 18);
-        RenderSystem.color4f(1f, 1f, 1f, 1f);
+        RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
         Minecraft.getInstance().getItemRenderer().renderGuiItem(display, x + 1, y + 1);
-        FontRenderer font = Minecraft.getInstance().font;
+        Font font = Minecraft.getInstance().font;
         stack.pushPose();
         stack.translate(x + 20, y + 2, 0);
         float nameWidth = font.width(displayName);
@@ -66,7 +69,7 @@ public class ModifierStackButton extends Button {
         stack.scale(0.5f, 0.5f, 1);
         if (recipe.getSlots() != null) {
             SlotType.SlotCount count = recipe.getSlots();
-            IFormattableTextComponent text = count.getCount() == 1 ? TranslationUtil.createComponent("modifiers.usedslot", count.getType().getDisplayName()) :
+            MutableComponent text = count.getCount() == 1 ? TranslationUtil.createComponent("modifiers.usedslot", count.getType().getDisplayName()) :
                     TranslationUtil.createComponent("modifiers.usedslots", count.getCount(), count.getType().getDisplayName());
             Screen.drawString(stack, font, text, 0, 0, 0xff_ff_ff_ff);
         }
@@ -77,9 +80,9 @@ public class ModifierStackButton extends Button {
     }
 
     @Override
-    public void renderToolTip(MatrixStack stack, int mouseX, int mouseY) {
+    public void renderToolTip(PoseStack stack, int mouseX, int mouseY) {
         parent.postRenderTasks.add(() -> {
-            List<ITextComponent> tooltips = new ArrayList<>(modifier.getDescriptionList());
+            List<Component> tooltips = new ArrayList<>(modifier.getDescriptionList());
             parent.renderComponentTooltip(stack, tooltips, mouseX, mouseY);
         });
     }

@@ -1,10 +1,10 @@
 package net.tiffit.tconplanner.screen;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.SoundEvents;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.item.ItemStack;
 import net.tiffit.tconplanner.api.TCSlotPos;
 import net.tiffit.tconplanner.data.Blueprint;
 import net.tiffit.tconplanner.data.PlannerData;
@@ -57,22 +57,22 @@ public class ToolTopPanel extends PlannerPanel{
     }
 
     @Override
-    public void render(MatrixStack stack, int mouseX, int mouseY, float p_230430_4_) {
-        RenderSystem.pushMatrix();
-        RenderSystem.translated(x + TCSlotPos.partsOffsetX + 7, y + TCSlotPos.partsOffsetY + 22, -100);
-        RenderSystem.scalef(3.7F, 3.7F, 1.0F);
+    public void render(PoseStack stack, int mouseX, int mouseY, float p_230430_4_) {
+        PoseStack itemModelStack = RenderSystem.getModelViewStack();
+        itemModelStack.pushPose();
+        itemModelStack.translate(x + TCSlotPos.partsOffsetX + 7, y + TCSlotPos.partsOffsetY + 22, -200);
+        itemModelStack.scale(3.7F, 3.7F, 1.0F);
         Minecraft.getInstance().getItemRenderer().renderGuiItem(parent.blueprint.toolStack, 0, 0);
-        RenderSystem.popMatrix();
+        itemModelStack.popPose();
         PlannerScreen.bindTexture();
-        RenderSystem.pushMatrix();
-        RenderSystem.translated(0, 0, 1);
         int boxX = 13, boxY = 24, boxL = 81;
         if(mouseX > boxX + x && mouseY > boxY + y && mouseX < boxX + x + boxL && mouseY < boxY + y + boxL)
-            RenderSystem.color4f(1f, 1f, 1f, 0.75f);
-        else RenderSystem.color4f(1f, 1f, 1f, 0.5f);
+            RenderSystem.setShaderColor(1f, 1f, 1f, 0.75f);
+        else RenderSystem.setShaderColor(1f, 1f, 1f, 0.5f);
+        RenderSystem.applyModelViewMatrix();
         RenderSystem.enableBlend();
+        RenderSystem.disableDepthTest();
         this.blit(stack, x + boxX, y + boxY, boxX, boxY, boxL, boxL);
-        RenderSystem.popMatrix();
         super.render(stack, mouseX, mouseY, p_230430_4_);
     }
 }

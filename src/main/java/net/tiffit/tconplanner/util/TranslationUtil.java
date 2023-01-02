@@ -1,11 +1,12 @@
 package net.tiffit.tconplanner.util;
 
-import net.minecraft.util.text.TranslationTextComponent;
+
+import net.minecraft.network.chat.TranslatableComponent;
 
 public final class TranslationUtil {
 
-    public static TranslationTextComponent createComponent(String key, Object... inserts){
-        return new TranslationTextComponent("gui.tconplanner." + key, inserts);
+    public static TranslatableComponent createComponent(String key, Object... inserts){
+        return new TranslatableComponent("gui.tconplanner." + key, inserts);
     }
 
 }

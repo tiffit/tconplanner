@@ -1,7 +1,7 @@
 package net.tiffit.tconplanner.screen;
 
 import com.google.common.collect.Lists;
-import net.minecraft.util.SoundEvents;
+import net.minecraft.sounds.SoundEvents;
 import net.tiffit.tconplanner.data.Blueprint;
 import net.tiffit.tconplanner.screen.buttons.IconButton;
 import net.tiffit.tconplanner.screen.buttons.MatPageButton;

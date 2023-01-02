@@ -1,12 +1,12 @@
 package net.tiffit.tconplanner.screen.buttons;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.client.renderer.ItemRenderer;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.world.item.ItemStack;
 import net.tiffit.tconplanner.data.Blueprint;
 import net.tiffit.tconplanner.screen.PlannerScreen;
 import net.tiffit.tconplanner.util.Icon;
@@ -23,7 +23,7 @@ public class BookmarkedButton extends Button {
     private boolean selected;
 
     public BookmarkedButton(int index, Blueprint blueprint, boolean starred, PlannerScreen parent){
-        super(0, 0, 18, 18, new StringTextComponent(""), button -> parent.setBlueprint(blueprint.clone()));
+        super(0, 0, 18, 18, new TextComponent(""), button -> parent.setBlueprint(blueprint.clone()));
         this.index = index;
         this.blueprint = blueprint;
         this.starred = starred;
@@ -33,8 +33,7 @@ public class BookmarkedButton extends Button {
     }
 
     @Override
-    public void renderButton(MatrixStack stack, int mouseX, int mouseY, float p_230431_4_) {
-        RenderSystem.disableRescaleNormal();
+    public void renderButton(PoseStack stack, int mouseX, int mouseY, float p_230431_4_) {
         PlannerScreen.bindTexture();
         RenderSystem.enableBlend();
         parent.blit(stack, x, y, 213, 41 + (selected ? 18 : 0), 18, 18);
@@ -53,7 +52,7 @@ public class BookmarkedButton extends Button {
     }
 
     @Override
-    public void renderToolTip(MatrixStack stack, int mouseX, int mouseY) {
+    public void renderToolTip(PoseStack stack, int mouseX, int mouseY) {
         parent.postRenderTasks.add(() -> parent.renderItemTooltip(stack, this.stack, mouseX, mouseY));
     }
 }

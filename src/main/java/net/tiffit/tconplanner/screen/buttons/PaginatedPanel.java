@@ -1,8 +1,8 @@
 package net.tiffit.tconplanner.screen.buttons;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.Widget;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.screens.Screen;
 import net.tiffit.tconplanner.Config;
 import net.tiffit.tconplanner.screen.PlannerPanel;
 import net.tiffit.tconplanner.screen.PlannerScreen;
@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-public class PaginatedPanel<T extends Widget> extends PlannerPanel {
+public class PaginatedPanel<T extends AbstractWidget> extends PlannerPanel {
 
     private final List<T> allChildren = new ArrayList<>();
     private final String cachePrefix;
@@ -32,7 +32,7 @@ public class PaginatedPanel<T extends Widget> extends PlannerPanel {
     }
 
 
-    public void addChild(Widget widget){
+    public void addChild(AbstractWidget widget){
         allChildren.add((T)widget);
     }
 
@@ -53,7 +53,7 @@ public class PaginatedPanel<T extends Widget> extends PlannerPanel {
         children.addAll(allChildren.subList(page*columns, Math.min(allChildren.size(), pageSize + page*columns)));
         scrollPageHeight = height/(float)(totalPages+rows-1);
         for (int i = 0; i < children.size(); i++) {
-            Widget widget = children.get(i);
+            AbstractWidget widget = children.get(i);
             widget.x = x + (i % columns) * (childWidth+spacing);
             widget.y = y + (i / columns) * (childHeight+spacing);
         }
@@ -80,7 +80,7 @@ public class PaginatedPanel<T extends Widget> extends PlannerPanel {
     }
 
     @Override
-    public void render(MatrixStack stack, int mouseX, int mouseY, float p_230430_4_) {
+    public void render(PoseStack stack, int mouseX, int mouseY, float p_230430_4_) {
         super.render(stack, mouseX, mouseY, p_230430_4_);
         if(totalPages > 1) {
             int scrollX = x + width - 3;

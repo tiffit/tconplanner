@@ -1,8 +1,8 @@
 package net.tiffit.tconplanner.data;
 
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.CompressedStreamTools;
-import net.minecraft.nbt.ListNBT;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtIo;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,24 +42,24 @@ public class PlannerData {
     }
 
     public void save() throws IOException {
-        ListNBT nbt = new ListNBT();
-        List<CompoundNBT> others = new ArrayList<>();
+        ListTag nbt = new ListTag();
+        List<CompoundTag> others = new ArrayList<>();
         for (Blueprint bp : saved) {
-            CompoundNBT cnbt = bp.toNBT();
+            CompoundTag cnbt = bp.toNBT();
             if(bp.isComplete() && !others.contains(cnbt)){
                 nbt.add(cnbt);
                 others.add(cnbt);
             }
         }
-        CompoundNBT data = new CompoundNBT();
+        CompoundTag data = new CompoundTag();
         data.put("list", nbt);
         if(starred != null){
             if(starred.isComplete()){
-                CompoundNBT cnbt = starred.toNBT();
+                CompoundTag cnbt = starred.toNBT();
                 data.put("starred", cnbt);
             }
         }
-        CompressedStreamTools.write(data, bookmarkFile);
+        NbtIo.writeCompressed(data, bookmarkFile);
     }
 
     public void firstLoad() throws IOException {
@@ -71,11 +71,10 @@ public class PlannerData {
     public void load() throws IOException {
         hasLoaded = true;
         saved.clear();
-        CompoundNBT data = CompressedStreamTools.read(bookmarkFile);
-        assert data != null;
-        ListNBT nbt = data.getList("list", data.getId());
+        CompoundTag data = NbtIo.readCompressed(bookmarkFile);
+        ListTag nbt = data.getList("list", data.getId());
         for(int i = 0; i < nbt.size(); i++){
-            CompoundNBT tag = nbt.getCompound(i);
+            CompoundTag tag = nbt.getCompound(i);
             saved.add(Blueprint.fromNBT(tag));
         }
         saved.removeIf(Objects::isNull);

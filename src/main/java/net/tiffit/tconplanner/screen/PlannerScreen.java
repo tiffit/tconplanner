@@ -1,16 +1,16 @@
 package net.tiffit.tconplanner.screen;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.util.InputMappings;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.RecipeManager;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeManager;
 import net.tiffit.tconplanner.TConPlanner;
 import net.tiffit.tconplanner.api.TCTool;
 import net.tiffit.tconplanner.data.Blueprint;
@@ -20,16 +20,15 @@ import net.tiffit.tconplanner.util.MaterialSort;
 import net.tiffit.tconplanner.util.ModifierStack;
 import net.tiffit.tconplanner.util.TranslationUtil;
 import org.lwjgl.glfw.GLFW;
-import slimeknights.mantle.recipe.RecipeHelper;
+import slimeknights.mantle.recipe.helper.RecipeHelper;
 import slimeknights.tconstruct.library.materials.MaterialRegistry;
 import slimeknights.tconstruct.library.materials.definition.IMaterial;
-import slimeknights.tconstruct.library.modifiers.ModifierEntry;
-import slimeknights.tconstruct.library.recipe.RecipeTypes;
+import slimeknights.tconstruct.library.recipe.TinkerRecipeTypes;
 import slimeknights.tconstruct.library.recipe.modifiers.adding.IDisplayModifierRecipe;
 import slimeknights.tconstruct.library.recipe.tinkerstation.ITinkerStationRecipe;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
 import slimeknights.tconstruct.library.tools.part.IToolPart;
-import slimeknights.tconstruct.tables.client.inventory.table.TinkerStationScreen;
+import slimeknights.tconstruct.tables.client.inventory.TinkerStationScreen;
 
 import java.io.IOException;
 import java.util.*;
@@ -57,7 +56,7 @@ public class PlannerScreen extends Screen {
     public ModifierStack modifierStack;
 
     public int left, top, guiWidth, guiHeight;
-    private ITextComponent titleText;
+    private Component titleText;
 
     public PlannerScreen(TinkerStationScreen child) {
         super(TranslationUtil.createComponent("name"));
@@ -78,7 +77,7 @@ public class PlannerScreen extends Screen {
         if(optionalTCTool.isPresent()){
             blueprint = new Blueprint(optionalTCTool.get());
             for (int i = 0; i < blueprint.materials.length; i++) {
-                blueprint.materials[i] = stack.getMaterial(i);
+                blueprint.materials[i] = stack.getMaterial(i).get();
             }
             selectedPart = -1;
         }
@@ -95,31 +94,30 @@ public class PlannerScreen extends Screen {
 
     public void refresh(){
         // Reset screen
-        buttons.clear();
-        children.clear();
+        clearWidgets();
         int toolSpace = 20;
         titleText = blueprint == null ? TranslationUtil.createComponent("notool") : blueprint.tool.getName();
-        addButton(new ToolSelectPanel(left - toolSpace * 5 - 4, top, toolSpace*5, toolSpace*3 + 23 + 4, tools, this));
+        addRenderableWidget(new ToolSelectPanel(left - toolSpace * 5 - 4, top, toolSpace*5, toolSpace*3 + 23 + 4, tools, this));
         if(data.saved.size() > 0) {
-            addButton(new BookmarkSelectPanel(left - toolSpace * 5 - 4, top + 15 + 18*4, toolSpace * 5, toolSpace * 5 + 23 + 4, data, this));
+            addRenderableWidget(new BookmarkSelectPanel(left - toolSpace * 5 - 4, top + 15 + 18*4, toolSpace * 5, toolSpace * 5 + 23 + 4, data, this));
         }
         //Everything in here should only be added if there is a tool selected
         if(blueprint != null){
             int topPanelSize = 115;
             ItemStack result = blueprint.createOutput();
             ToolStack resultStack = result.isEmpty() ? null : ToolStack.from(result);
-            addButton(new ToolTopPanel(left, top, guiWidth, topPanelSize, result, resultStack, data,this));
+            addRenderableWidget(new ToolTopPanel(left, top, guiWidth, topPanelSize, result, resultStack, data,this));
             if(selectedPart != -1){
-                addButton(new MaterialSelectPanel(left, top + topPanelSize, guiWidth, guiHeight - topPanelSize, this));
+                addRenderableWidget(new MaterialSelectPanel(left, top + topPanelSize, guiWidth, guiHeight - topPanelSize, this));
             }
             if(resultStack != null) {
-                addButton(new ModifierPanel(left + guiWidth, top, 115, guiHeight, result, resultStack, modifiers, this));
+                addRenderableWidget(new ModifierPanel(left + guiWidth, top, 115, guiHeight, result, resultStack, modifiers, this));
             }
         }
     }
 
     @Override
-    public void render(MatrixStack stack, int mouseX, int mouseY, float partialTick) {
+    public void render(PoseStack stack, int mouseX, int mouseY, float partialTick) {
         renderBackground(stack);
         bindTexture();
         this.blit(stack, left, top, 0, 0, guiWidth, guiHeight);
@@ -161,7 +159,7 @@ public class PlannerScreen extends Screen {
 
     @Override
     public boolean keyPressed(int key, int p_231046_2_, int p_231046_3_) {
-        InputMappings.Input mouseKey = InputMappings.getKey(key, p_231046_2_);
+        InputConstants.Key mouseKey = InputConstants.getKey(key, p_231046_2_);
         if (super.keyPressed(key, p_231046_2_, p_231046_3_)) {
             return true;
         } else if (minecraft.options.keyInventory.isActiveAndMatches(mouseKey)) {
@@ -176,7 +174,7 @@ public class PlannerScreen extends Screen {
         return false;
     }
 
-    public void renderItemTooltip(MatrixStack mstack, ItemStack stack, int x, int y) {
+    public void renderItemTooltip(PoseStack mstack, ItemStack stack, int x, int y) {
         renderTooltip(mstack, stack, x, y);
     }
 
@@ -187,8 +185,9 @@ public class PlannerScreen extends Screen {
     }
 
     public static void bindTexture(){
-        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-        Minecraft.getInstance().getTextureManager().bind(TEXTURE);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShaderTexture(0, TEXTURE);
     }
 
     public void bookmarkCurrent(){
@@ -257,7 +256,7 @@ public class PlannerScreen extends Screen {
 
     public void giveItemstack(ItemStack stack){
         ItemStack currentStack;
-        PlayerInventory inventory = minecraft.player.inventory;
+        Inventory inventory = minecraft.player.getInventory();
         for(int i = 0; i < inventory.items.size(); i++) {
             currentStack = inventory.items.get(i);
             if (currentStack.isEmpty()) {
@@ -292,7 +291,7 @@ public class PlannerScreen extends Screen {
 
     public static List<IDisplayModifierRecipe> getModifierRecipes(){
         RecipeManager recipeManager = Minecraft.getInstance().level.getRecipeManager();
-        List<IDisplayModifierRecipe> jeiRecipes = RecipeHelper.getJEIRecipes(recipeManager, RecipeTypes.TINKER_STATION, IDisplayModifierRecipe.class);
+        List<IDisplayModifierRecipe> jeiRecipes = RecipeHelper.getJEIRecipes(recipeManager, TinkerRecipeTypes.TINKER_STATION.get(), IDisplayModifierRecipe.class);
         List<IDisplayModifierRecipe> cleanedList = new ArrayList<>();
         for (IDisplayModifierRecipe recipe : jeiRecipes) {
             if(recipe instanceof ITinkerStationRecipe){
@@ -304,9 +303,5 @@ public class PlannerScreen extends Screen {
             }
         }
         return cleanedList;
-    }
-
-    public void renderWrappedToolTip(MatrixStack matrixStack, List<? extends net.minecraft.util.text.ITextProperties> tooltips, int mouseX, int mouseY) {
-        net.minecraftforge.fml.client.gui.GuiUtils.drawHoveringText(matrixStack, tooltips, mouseX, mouseY, width, height, -1, font);
     }
 }

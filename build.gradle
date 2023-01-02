@@ -12,11 +12,12 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
-version = '1.16.5-1.1.1'
+version = '1.18.2-1.1.1'
 group = 'net.tiffit.tconplanner' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'tconplanner'
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(8) // Mojang ships Java 8 to end users, so your mod should target Java 8.
+// Mojang ships Java 17 to end users in 1.18+, so your mod should target Java 17.
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
 println('Java: ' + System.getProperty('java.version') + ' JVM: ' + System.getProperty('java.vm.version') + '(' + System.getProperty('java.vendor') + ') Arch: ' + System.getProperty('os.arch'))
 minecraft {
@@ -31,7 +32,7 @@ minecraft {
     //
     // Use non-default mappings at your own risk. they may not always work.
     // Simply re-run your setup task after changing the mappings to update your workspace.
-    mappings channel: 'official', version: '1.16.5'
+    mappings channel: 'official', version: '1.18.2'
     // makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
 
     // accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
@@ -123,10 +124,14 @@ repositories {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.16.5-36.2.20'
-    implementation fg.deobf('curse.maven:mantle-74924:3631982')
-    implementation fg.deobf('curse.maven:tinkersconstruct-74072:3631989')
-    implementation fg.deobf('curse.maven:jei-238222:3519343')
+    minecraft 'net.minecraftforge:forge:1.18.2-40.1.93'
+    implementation fg.deobf('curse.maven:mantle-74924:4072436')
+    implementation fg.deobf('curse.maven:tinkersconstruct-74072:4275759')
+    implementation fg.deobf('curse.maven:jei-238222:3940240')
 }
 
 jar.finalizedBy('reobfJar')
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
+}

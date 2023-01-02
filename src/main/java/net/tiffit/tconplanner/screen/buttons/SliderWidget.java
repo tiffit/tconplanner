@@ -1,16 +1,17 @@
 package net.tiffit.tconplanner.screen.buttons;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.widget.Widget;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.util.Mth;
 import net.tiffit.tconplanner.screen.PlannerScreen;
 
 import java.util.function.Consumer;
 
-public class SliderWidget extends Widget {
+public class SliderWidget extends AbstractWidget {
 
     private final PlannerScreen parent;
     private final Consumer<Integer> listener;
@@ -19,7 +20,7 @@ public class SliderWidget extends Widget {
     private int value;
 
     public SliderWidget(int x, int y, int width, int height, Consumer<Integer> listener, int min, int max, int value, PlannerScreen parent) {
-        super(x, y, width, height, new StringTextComponent(""));
+        super(x, y, width, height, new TextComponent(""));
         this.parent = parent;
         this.listener = listener;
         this.min = min;
@@ -29,7 +30,7 @@ public class SliderWidget extends Widget {
     }
 
     @Override
-    public void renderButton(MatrixStack stack, int mouseX, int mouseY, float partialTick) {
+    public void renderButton(PoseStack stack, int mouseX, int mouseY, float partialTick) {
         int center = y + height/2;
         PlannerScreen.bindTexture();
         for(int dx = x - 2; dx < x + width + 2; dx++){
@@ -37,7 +38,7 @@ public class SliderWidget extends Widget {
         }
         int sliderX = x + (int)(width*percent);
         parent.blit(stack, sliderX - 2, y, 178, 78, 4, 20);
-        FontRenderer font = Minecraft.getInstance().font;
+        Font font = Minecraft.getInstance().font;
         int minValSize = font.width(min + "");
         drawString(stack, font, min + "", x - minValSize - 5, y + 6, 0xff_ff_ff_ff);
         drawString(stack, font, max + "", x + width + 5, y + 6, 0xff_ff_ff_ff);
@@ -57,9 +58,14 @@ public class SliderWidget extends Widget {
     }
 
     private void updateVal(double mouseX){
-        percent = MathHelper.clamp((mouseX - x)/width, 0, 1);
+        percent = Mth.clamp((mouseX - x)/width, 0, 1);
         int oldVal = value;
-        value = (int)MathHelper.clamp((max-min)*percent + min, min, max);
+        value = (int)Mth.clamp((max-min)*percent + min, min, max);
         if(value != oldVal)listener.accept(value);
+    }
+
+    @Override
+    public void updateNarration(NarrationElementOutput p_169152_) {
+
     }
 }

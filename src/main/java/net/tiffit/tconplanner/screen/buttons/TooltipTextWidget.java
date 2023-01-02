@@ -1,35 +1,35 @@
 package net.tiffit.tconplanner.screen.buttons;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.audio.SoundHandler;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.widget.Widget;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.network.chat.Component;
 import net.tiffit.tconplanner.screen.PlannerScreen;
 import net.tiffit.tconplanner.util.TextPosEnum;
 
 import java.util.Collections;
 import java.util.List;
 
-public class TooltipTextWidget extends Widget {
+public class TooltipTextWidget extends AbstractWidget {
 
     private final PlannerScreen parent;
     private int color = 0xff_ff_ff_ff;
-    private final FontRenderer font;
-    private final List<ITextComponent> tooltip;
+    private final Font font;
+    private final List<Component> tooltip;
 
     private IOnTooltipTextWidgetClick onClick;
 
-    public TooltipTextWidget(int x, int y, ITextComponent text, ITextComponent tooltip, PlannerScreen parent) {
+    public TooltipTextWidget(int x, int y, Component text, Component tooltip, PlannerScreen parent) {
         this(x, y, TextPosEnum.LEFT, text, tooltip, parent);
     }
 
-    public TooltipTextWidget(int x, int y, TextPosEnum pos, ITextComponent text, ITextComponent tooltip, PlannerScreen parent) {
+    public TooltipTextWidget(int x, int y, TextPosEnum pos, Component text, Component tooltip, PlannerScreen parent) {
         this(x, y, pos, text, Collections.singletonList(tooltip), parent);
     }
 
-    public TooltipTextWidget(int x, int y, TextPosEnum pos, ITextComponent text, List<ITextComponent> tooltip, PlannerScreen parent) {
+    public TooltipTextWidget(int x, int y, TextPosEnum pos, Component text, List<Component> tooltip, PlannerScreen parent) {
         super(x, y, 0, 0, text);
         this.parent = parent;
         this.tooltip = tooltip;
@@ -52,15 +52,15 @@ public class TooltipTextWidget extends Widget {
     }
 
     @Override
-    public void renderButton(MatrixStack stack, int mouseX, int mouseY, float p_230431_4_) {
+    public void renderButton(PoseStack stack, int mouseX, int mouseY, float p_230431_4_) {
         drawString(stack, font, getMessage(), x, y, color);
-        if(isHovered()){
+        if(isHoveredOrFocused()){
             renderToolTip(stack, mouseX, mouseY);
         }
     }
 
     @Override
-    public void renderToolTip(MatrixStack stack, int mouseX, int mouseY) {
+    public void renderToolTip(PoseStack stack, int mouseX, int mouseY) {
         parent.postRenderTasks.add(() -> parent.renderComponentTooltip(stack, tooltip, mouseX, mouseY));
     }
 
@@ -72,6 +72,9 @@ public class TooltipTextWidget extends Widget {
             return false;
         }
     }
+
+    @Override
+    public void updateNarration(NarrationElementOutput p_169152_) {}
 
     public static interface IOnTooltipTextWidgetClick {
         boolean onClick(double mouseX, double mouseY, int mouseButton);

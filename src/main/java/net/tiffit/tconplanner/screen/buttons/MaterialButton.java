@@ -1,16 +1,19 @@
 package net.tiffit.tconplanner.screen.buttons;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.audio.SimpleSound;
-import net.minecraft.client.audio.SoundHandler;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.SoundEvents;
-import net.minecraft.util.text.*;
-import net.minecraftforge.fml.client.gui.GuiUtils;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.client.sounds.SoundManager;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.TextColor;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.tiffit.tconplanner.data.Blueprint;
 import net.tiffit.tconplanner.screen.PlannerScreen;
 import net.tiffit.tconplanner.util.TranslationUtil;
@@ -32,7 +35,7 @@ public class MaterialButton extends Button {
     public final ItemStack stack;
     private final PlannerScreen parent;
     public boolean selected = false;
-    public ITextComponent errorText;
+    public Component errorText;
 
     public MaterialButton(int index, IMaterial material, ItemStack stack, int x, int y, PlannerScreen parent){
         super(x, y, 16, 16, stack.getHoverName(), button -> parent.setPart(material));
@@ -44,16 +47,16 @@ public class MaterialButton extends Button {
             cloned.materials[parent.selectedPart] = material;
             ValidatedResult result = ToolStack.from(cloned.createOutput()).validate();
             if(!result.hasError())result = cloned.validate();
-            if(result.hasError())errorText = result.getMessage().copy().withStyle(TextFormatting.DARK_RED);
+            if(result.hasError())errorText = result.getMessage().copy().withStyle(ChatFormatting.DARK_RED);
         }
     }
 
     @Override
-    public void renderButton(MatrixStack stack, int mouseX, int mouseY, float p_230431_4_) {
+    public void renderButton(PoseStack stack, int mouseX, int mouseY, float p_230431_4_) {
         Minecraft.getInstance().getItemRenderer().renderGuiItem(this.stack, x, y);
         int right = x + width;
         int bottom = y + height;
-        if(selected)Screen.fill(stack, x, y, right, bottom, 0x55_00_ff_00);
+        if(selected) Screen.fill(stack, x, y, right, bottom, 0x55_00_ff_00);
         if(errorText != null){
             Screen.fill(stack, x, y, right, bottom, 0x55_ff_00_00);
         }
@@ -64,29 +67,29 @@ public class MaterialButton extends Button {
     }
 
     @Override
-    public void renderToolTip(MatrixStack ms, int mouseX, int mouseY) {
+    public void renderToolTip(PoseStack ms, int mouseX, int mouseY) {
         if(errorText == null) {
             parent.postRenderTasks.add(() -> {
-                List<ITextComponent> tooltip = new ArrayList<>();
+                List<Component> tooltip = new ArrayList<>();
                 if(Screen.hasControlDown() && stack.getItem() instanceof ToolPartItem){
                     ToolPartItem part = (ToolPartItem)stack.getItem();
                     tooltip.add(part.getName(stack));
                     List<ModifierEntry> entries = MaterialRegistry.getInstance().getTraits(material.getIdentifier(), part.getStatType());
                     for (ModifierEntry entry : entries) {
                         Modifier modifier = entry.getModifier();
-                        tooltip.add(new StringTextComponent("").append(modifier.getDisplayName(entry.getLevel())).withStyle(TextFormatting.UNDERLINE));
-                        Color c = Color.fromRgb(modifier.getColor());
-                        for (ITextComponent comp : modifier.getDescriptionList(entry.getLevel())) {
-                            tooltip.add(new StringTextComponent("").append(comp).withStyle(Style.EMPTY.withColor(c)));
+                        tooltip.add(new TextComponent("").append(modifier.getDisplayName(entry.getLevel())).withStyle(ChatFormatting.UNDERLINE));
+                        TextColor c = TextColor.fromRgb(modifier.getColor());
+                        for (Component comp : modifier.getDescriptionList(entry.getLevel())) {
+                            tooltip.add(new TextComponent("").append(comp).withStyle(Style.EMPTY.withColor(c)));
                         }
                     }
                 }else{
-                    tooltip.addAll(stack.getTooltipLines(parent.getMinecraft().player, ITooltipFlag.TooltipFlags.NORMAL));
+                    tooltip.addAll(stack.getTooltipLines(parent.getMinecraft().player, TooltipFlag.Default.NORMAL));
                     if(!Screen.hasControlDown()){
-                        tooltip.add(TranslationUtil.createComponent("parts.modifier_descriptions", TConstruct.makeTranslation("key", "ctrl").withStyle(TextFormatting.AQUA, TextFormatting.ITALIC)));
+                        tooltip.add(TranslationUtil.createComponent("parts.modifier_descriptions", TConstruct.makeTranslation("key", "ctrl").withStyle(ChatFormatting.AQUA, ChatFormatting.ITALIC)));
                     }
                 }
-                parent.renderWrappedToolTip(ms, tooltip, mouseX, mouseY);
+                parent.renderComponentTooltip(ms, tooltip, mouseX, mouseY);
             });
         }else {
             parent.postRenderTasks.add(() -> parent.renderTooltip(ms, errorText, mouseX, mouseY));
@@ -101,9 +104,9 @@ public class MaterialButton extends Button {
     }
 
     @Override
-    public void playDownSound(SoundHandler sound) {
+    public void playDownSound(SoundManager sound) {
         if(errorText != null){
-            sound.play(SimpleSound.forUI(SoundEvents.ANVIL_HIT, 1.0F));
+            sound.play(SimpleSoundInstance.forUI(SoundEvents.ANVIL_HIT, 1.0F));
         } else {
             super.playDownSound(sound);
         }

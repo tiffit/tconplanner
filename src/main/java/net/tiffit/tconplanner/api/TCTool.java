@@ -1,12 +1,13 @@
 package net.tiffit.tconplanner.api;
 
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import slimeknights.tconstruct.common.TinkerTags;
 import slimeknights.tconstruct.library.tools.item.IModifiable;
 import slimeknights.tconstruct.library.tools.layout.StationSlotLayout;
 import slimeknights.tconstruct.library.tools.layout.StationSlotLayoutLoader;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,11 +21,11 @@ public class TCTool {
         renderTool = layout.getIcon().getValue(ItemStack.class);
     }
 
-    public ITextComponent getName(){
+    public Component getName(){
         return layout.getDisplayName();
     }
 
-    public ITextComponent getDescription(){
+    public Component getDescription(){
         return layout.getDescription();
     }
 
@@ -53,7 +54,7 @@ public class TCTool {
             ALL_TOOLS = StationSlotLayoutLoader.getInstance().getSortedSlots().stream()
                     .filter(layout -> {
                         ItemStack stack = layout.getIcon().getValue(ItemStack.class);
-                        return stack != null && TinkerTags.Items.MODIFIABLE.contains(stack.getItem()) && stack.getItem() instanceof IModifiable;
+                        return stack != null && stack.is(TinkerTags.Items.MODIFIABLE) && stack.getItem() instanceof IModifiable;
                     }).map(TCTool::new).collect(Collectors.toList());
         }
         return ALL_TOOLS;

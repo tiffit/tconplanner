@@ -1,12 +1,12 @@
 package net.tiffit.tconplanner.screen.buttons;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.client.renderer.ItemRenderer;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.world.item.ItemStack;
 import net.tiffit.tconplanner.screen.PlannerScreen;
 import slimeknights.tconstruct.library.materials.definition.IMaterial;
 import slimeknights.tconstruct.library.tools.part.IToolPart;
@@ -20,7 +20,7 @@ public class ToolPartButton extends Button {
     public final int index;
 
     public ToolPartButton(int index, int x, int y, IToolPart part, IMaterial material, PlannerScreen parent){
-        super(x, y, 16, 16, new StringTextComponent(""), button -> parent.setSelectedPart(index));
+        super(x, y, 16, 16, new TextComponent(""), button -> parent.setSelectedPart(index));
         this.index = index;
         this.part = part;
         this.parent = parent;
@@ -29,16 +29,17 @@ public class ToolPartButton extends Button {
     }
 
     @Override
-    public void renderButton(MatrixStack stack, int mouseX, int mouseY, float p_230431_4_) {
+    public void renderButton(PoseStack stack, int mouseX, int mouseY, float p_230431_4_) {
         ItemRenderer renderer = Minecraft.getInstance().getItemRenderer();
         boolean selected = parent.selectedPart == index;
-        RenderSystem.pushMatrix();
+        PoseStack modelStack = RenderSystem.getModelViewStack();
+        modelStack.pushPose();
         PlannerScreen.bindTexture();
-        RenderSystem.translated(0, 0, 1);
-        RenderSystem.color4f(1f, 1f, 1f, 0.7f);
+        modelStack.translate(0, 0, 1);
+        RenderSystem.setShaderColor(1f, 1f, 1f, 0.7f);
         RenderSystem.enableBlend();
         parent.blit(stack, x - 1, y - 1, 176 + (material == null ? 18 : 0), 41 + (selected ? 18 : 0), 18, 18);
-        RenderSystem.popMatrix();
+        modelStack.popPose();
         renderer.renderGuiItem(this.stack, x, y);
         if(isHovered){
             renderToolTip(stack, mouseX, mouseY);
@@ -46,7 +47,7 @@ public class ToolPartButton extends Button {
     }
 
     @Override
-    public void renderToolTip(MatrixStack stack, int mouseX, int mouseY) {
+    public void renderToolTip(PoseStack stack, int mouseX, int mouseY) {
         parent.postRenderTasks.add(() -> parent.renderItemTooltip(stack, this.stack, mouseX, mouseY));
     }
 

@@ -1,12 +1,12 @@
 package net.tiffit.tconplanner.util;
 
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 import slimeknights.tconstruct.library.recipe.material.MaterialRecipe;
-import slimeknights.tconstruct.library.recipe.tinkerstation.ITinkerStationInventory;
+import slimeknights.tconstruct.library.recipe.tinkerstation.ITinkerStationContainer;
 
 import javax.annotation.Nullable;
 
-public class DummyTinkersStationInventory implements ITinkerStationInventory {
+public class DummyTinkersStationInventory implements ITinkerStationContainer {
 
     private final ItemStack stack;
 

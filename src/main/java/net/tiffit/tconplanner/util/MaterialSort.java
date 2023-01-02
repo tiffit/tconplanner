@@ -37,9 +37,9 @@ public class MaterialSort<T extends IMaterialStats> {
         IMaterialRegistry registry = MaterialRegistry.getInstance();
         Optional<IMaterialStats> ostats1 = registry.getMaterialStats(mat1.getIdentifier(), statsId);
         Optional<IMaterialStats> ostats2 = registry.getMaterialStats(mat2.getIdentifier(), statsId);
-        if(ostats1.isPresent() && !ostats2.isPresent())return -1;
-        if(!ostats1.isPresent() && ostats2.isPresent())return 1;
-        if(!ostats1.isPresent())return 0;
+        if(ostats1.isPresent() && ostats2.isEmpty())return -1;
+        if(ostats1.isEmpty() && ostats2.isPresent())return 1;
+        if(ostats1.isEmpty())return 0;
         IMaterialStats stats1 = ostats1.get();
         IMaterialStats stats2 = ostats2.get();
         return compare(stats1, stats2);
@@ -58,7 +58,7 @@ public class MaterialSort<T extends IMaterialStats> {
 
 
         add(HeadMaterialStats.class, new MaterialSort<>(Comparator.comparingInt(HeadMaterialStats::getDurability), "Durability", new Icon(1, 1)));
-        add(HeadMaterialStats.class, new MaterialSort<>(Comparator.comparingInt(HeadMaterialStats::getHarvestLevel), "Harvest Level", new Icon(5, 1)));
+        add(HeadMaterialStats.class, new MaterialSort<>(Comparator.comparingInt(value -> value.getTier().getLevel()), "Harvest Level", new Icon(5, 1)));
         add(HeadMaterialStats.class, new MaterialSort<>(Comparator.comparingDouble(HeadMaterialStats::getMiningSpeed), "Mining Speed", new Icon(2, 1)));
         add(HeadMaterialStats.class, new MaterialSort<>(Comparator.comparingDouble(HeadMaterialStats::getAttack), "Attack Damage", new Icon(4, 1)));
     }

@@ -1,16 +1,16 @@
 package net.tiffit.tconplanner.util;
 
 import com.google.common.collect.ImmutableList;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.ListNBT;
-import net.minecraft.nbt.StringNBT;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.tiffit.tconplanner.data.ModifierInfo;
 import net.tiffit.tconplanner.screen.PlannerScreen;
-import slimeknights.tconstruct.library.modifiers.IncrementalModifier;
 import slimeknights.tconstruct.library.modifiers.Modifier;
 import slimeknights.tconstruct.library.modifiers.ModifierId;
+import slimeknights.tconstruct.library.modifiers.impl.IncrementalModifier;
 import slimeknights.tconstruct.library.recipe.modifiers.ModifierRecipeLookup;
 import slimeknights.tconstruct.library.recipe.modifiers.adding.IDisplayModifierRecipe;
 import slimeknights.tconstruct.library.recipe.tinkerstation.ITinkerStationRecipe;
@@ -40,7 +40,7 @@ public class ModifierStack {
     }
 
     public void setIncrementalDiff(Modifier modifier, int amount){
-        incrementalDiffMap.put(modifier.getId(), MathHelper.clamp(amount,0, ModifierRecipeLookup.getNeededPerLevel(modifier)));
+        incrementalDiffMap.put(modifier.getId(), Mth.clamp(amount,0, ModifierRecipeLookup.getNeededPerLevel(modifier.getId())));
     }
 
     public int getIncrementalDiff(Modifier modifier){
@@ -58,9 +58,9 @@ public class ModifierStack {
     public void applyIncrementals(ToolStack tool){
         stack.stream().distinct().forEach(info -> {
             Modifier mod = info.modifier;
-            int amount = ModifierRecipeLookup.getNeededPerLevel(mod);
+            int amount = ModifierRecipeLookup.getNeededPerLevel(mod.getId());
             if(amount > 0){
-                IncrementalModifier.setAmount(tool.getPersistentData(), mod, amount - getIncrementalDiff(mod));
+                IncrementalModifier.setAmount(tool.getPersistentData(), mod.getId(), amount - getIncrementalDiff(mod));
             }
         });
     }
@@ -69,16 +69,16 @@ public class ModifierStack {
         return ImmutableList.copyOf(stack);
     }
 
-    public CompoundNBT toNBT(){
-        CompoundNBT tag = new CompoundNBT();
-        ListNBT modList = new ListNBT();
+    public CompoundTag toNBT(){
+        CompoundTag tag = new CompoundTag();
+        ListTag modList = new ListTag();
         for (ModifierInfo info : stack) {
-            modList.add(StringNBT.valueOf(((ITinkerStationRecipe)info.recipe).getId().toString()));
+            modList.add(StringTag.valueOf(((ITinkerStationRecipe)info.recipe).getId().toString()));
         }
         tag.put("mods", modList);
-        ListNBT diffList = new ListNBT();
+        ListTag diffList = new ListTag();
         for (Map.Entry<ModifierId, Integer> entry : incrementalDiffMap.entrySet()) {
-            CompoundNBT diffNBT = new CompoundNBT();
+            CompoundTag diffNBT = new CompoundTag();
             diffNBT.putString("mod", entry.getKey().toString());
             diffNBT.putInt("amount", entry.getValue());
             diffList.add(diffNBT);
@@ -87,10 +87,10 @@ public class ModifierStack {
         return tag;
     }
 
-    public void fromNBT(CompoundNBT tag){
+    public void fromNBT(CompoundTag tag){
         stack.clear();
         incrementalDiffMap.clear();
-        ListNBT modList = tag.getList("mods", 8);
+        ListTag modList = tag.getList("mods", 8);
         Map<ResourceLocation, IDisplayModifierRecipe> recipesMap = PlannerScreen.getModifierRecipes().stream().collect(Collectors.toMap(recipe -> ((ITinkerStationRecipe)recipe).getId(), recipe -> recipe));
         for(int i = 0; i < modList.size(); i++){
             ResourceLocation resourceLocation = new ResourceLocation(modList.getString(i));
@@ -98,9 +98,9 @@ public class ModifierStack {
                 push(new ModifierInfo(recipesMap.get(resourceLocation)));
             }
         }
-        ListNBT diffList = tag.getList("diff", 10);
+        ListTag diffList = tag.getList("diff", 10);
         for(int i = 0; i < diffList.size(); i++){
-            CompoundNBT diffNBT = diffList.getCompound(i);
+            CompoundTag diffNBT = diffList.getCompound(i);
             ModifierId modId = new ModifierId(diffNBT.getString("mod"));
             int amount = diffNBT.getInt("amount");
             incrementalDiffMap.put(modId, amount);

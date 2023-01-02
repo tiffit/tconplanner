@@ -2,7 +2,7 @@ package net.tiffit.tconplanner.util;
 
 import net.tiffit.tconplanner.data.Blueprint;
 import net.tiffit.tconplanner.data.ModifierInfo;
-import slimeknights.tconstruct.library.modifiers.IncrementalModifier;
+import slimeknights.tconstruct.library.modifiers.impl.IncrementalModifier;
 import slimeknights.tconstruct.library.recipe.modifiers.ModifierRecipeLookup;
 import slimeknights.tconstruct.library.recipe.tinkerstation.ITinkerStationRecipe;
 import slimeknights.tconstruct.library.recipe.tinkerstation.ValidatedResult;
@@ -21,8 +21,8 @@ public final class ToolValidator {
         int minLevel = Math.max(0, toolBaseLevel);
         if(bp.modStack.getLevel(modInfo.modifier) + toolBaseLevel <= minLevel || !bp.modStack.isRecipeUsed((ITinkerStationRecipe) modInfo.recipe))
             return ValidatedResult.failure("gui.tconplanner.modifiers.error.minlevel");
-        toolClone.removeModifier(modInfo.modifier, 1);
-        IncrementalModifier.setAmount(toolClone.getPersistentData(), modInfo.modifier, ModifierRecipeLookup.getNeededPerLevel(modInfo.modifier));
+        toolClone.removeModifier(modInfo.modifier.getId(), 1);
+        IncrementalModifier.setAmount(toolClone.getPersistentData(), modInfo.modifier.getId(), ModifierRecipeLookup.getNeededPerLevel(modInfo.modifier.getId()));
         ValidatedResult validatedResultSubtract = toolClone.validate();
         if(validatedResultSubtract.hasError())return validatedResultSubtract;
         Blueprint bpClone = bp.clone();

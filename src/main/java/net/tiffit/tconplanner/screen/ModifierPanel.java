@@ -1,21 +1,25 @@
 package net.tiffit.tconplanner.screen;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.audio.SimpleSound;
-import net.minecraft.client.audio.SoundHandler;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.SoundEvents;
-import net.minecraft.util.text.*;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.client.sounds.SoundManager;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.item.ItemStack;
 import net.tiffit.tconplanner.data.Blueprint;
 import net.tiffit.tconplanner.data.ModifierInfo;
 import net.tiffit.tconplanner.screen.buttons.*;
 import net.tiffit.tconplanner.screen.buttons.modifiers.*;
 import net.tiffit.tconplanner.util.*;
 import slimeknights.tconstruct.TConstruct;
-import slimeknights.tconstruct.common.SoundUtils;
 import slimeknights.tconstruct.library.modifiers.Modifier;
 import slimeknights.tconstruct.library.modifiers.ModifierId;
-import slimeknights.tconstruct.library.modifiers.SingleUseModifier;
+import slimeknights.tconstruct.library.modifiers.impl.DurabilityShieldModifier;
+import slimeknights.tconstruct.library.modifiers.impl.NoLevelsModifier;
 import slimeknights.tconstruct.library.recipe.modifiers.ModifierRecipeLookup;
 import slimeknights.tconstruct.library.recipe.modifiers.adding.IDisplayModifierRecipe;
 import slimeknights.tconstruct.library.recipe.tinkerstation.ITinkerStationRecipe;
@@ -38,20 +42,20 @@ public class ModifierPanel extends PlannerPanel{
         int slotIndex = 0;
         for (SlotType slotType : ValidSlots) {
             int slots = tool.getFreeSlots(slotType);
-            List<ITextComponent> tooltips = new ArrayList<>();
-            ITextComponent coloredName = new StringTextComponent("")
+            List<Component> tooltips = new ArrayList<>();
+            Component coloredName = new TextComponent("")
                     .withStyle(Style.EMPTY.withColor(slotType.getColor()))
                     .append(slotType.getDisplayName())
-                    .append(new StringTextComponent("").withStyle(TextFormatting.RESET));
+                    .append(new TextComponent("").withStyle(ChatFormatting.RESET));
             tooltips.add(TranslationUtil.createComponent("slots.available", coloredName));
-            tooltips.add(new StringTextComponent(""));
-            tooltips.add(TranslationUtil.createComponent("modifiers.addcreativeslot").withStyle(TextFormatting.GREEN));
-            IFormattableTextComponent removeCreativeSlotTextComponent = TranslationUtil.createComponent("modifiers.removecreativeslot").withStyle(TextFormatting.RED);
+            tooltips.add(new TextComponent(""));
+            tooltips.add(TranslationUtil.createComponent("modifiers.addcreativeslot").withStyle(ChatFormatting.GREEN));
+            MutableComponent removeCreativeSlotTextComponent = TranslationUtil.createComponent("modifiers.removecreativeslot").withStyle(ChatFormatting.RED);
             if(slots == 0){
-                removeCreativeSlotTextComponent.withStyle(removeCreativeSlotTextComponent.getStyle().applyFormats(TextFormatting.STRIKETHROUGH));
+                removeCreativeSlotTextComponent.withStyle(removeCreativeSlotTextComponent.getStyle().applyFormats(ChatFormatting.STRIKETHROUGH));
             }
             tooltips.add(removeCreativeSlotTextComponent);
-            IFormattableTextComponent slotsRemaining = new StringTextComponent("" + slots);
+            MutableComponent slotsRemaining = new TextComponent("" + slots);
             int creativeSlots = parent.blueprint.creativeSlots.getOrDefault(slotType, 0);
             if(creativeSlots > 0){
                 slotsRemaining.append(" (+" + parent.blueprint.creativeSlots.get(slotType) + ")");
@@ -83,7 +87,7 @@ public class ModifierPanel extends PlannerPanel{
                 ModifierInfo info = modStack.get(i);
                 int newLevel = levelCount.getOrDefault(info.modifier.getId(), 0) + 1;
                 levelCount.put(info.modifier.getId(), newLevel);
-                displayStack.addModifier(info.modifier, 1);
+                displayStack.addModifier(info.modifier.getId(), 1);
                 if (info.count != null) {
                     displayStack.getPersistentData().addSlots(info.count.getType(), -info.count.getCount());
                 }
@@ -111,7 +115,7 @@ public class ModifierPanel extends PlannerPanel{
             PaginatedPanel<ModifierSelectButton> modifiersGroup = new PaginatedPanel<>(modGroupStartX, modGroupStartY, 100, 18, 1, 9, 2, "modifiersgroup", parent);
             addChild(modifiersGroup);
             for (IDisplayModifierRecipe recipe : modifiers) {
-                if (recipe.getDisplayItems().get(0).stream().anyMatch(stack -> ToolStack.from(stack).getDefinition() == blueprint.toolDefinition)) {
+                if (recipe.getToolWithoutModifier().stream().anyMatch(stack -> ToolStack.from(stack).getDefinition() == blueprint.toolDefinition)) {
                     modifiersGroup.addChild(ModifierSelectButton.create(recipe, tool, result, parent));
                 }
             }
@@ -135,13 +139,13 @@ public class ModifierPanel extends PlannerPanel{
             addChild(new ModPreviewWidget(2 + 50 - 9, 50, result, parent));
             int arrowOffset = 11;
             ModLevelButton addButton = new ModLevelButton(2 + 50 + arrowOffset - 2, 50, 1, parent);
-            ValidatedResult validatedResultAdd = modifier instanceof SingleUseModifier && tool.getModifierLevel(modifier) >= 1 ?
+            ValidatedResult validatedResultAdd = (modifier instanceof NoLevelsModifier || modifier instanceof DurabilityShieldModifier) && tool.getModifierLevel(modifier) >= 1 ?
                     ValidatedResult.failure(KEY_MAX_LEVEL, modifier.getDisplayName(), 1) : tsrecipe.getValidatedResult(new DummyTinkersStationInventory(result));
             if (!validatedResultAdd.isSuccess()) {
-                addButton.disable(validatedResultAdd.getMessage().copy().setStyle(Style.EMPTY.withColor(TextFormatting.RED)));
+                addButton.disable(validatedResultAdd.getMessage().copy().setStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
                 addChild(new ModPreviewWidget(addButton.x + addButton.getWidth() + 2, 50, ItemStack.EMPTY, parent));
             } else if (blueprint.modStack.getIncrementalDiff(modifier) > 0) {
-                addButton.disable(TranslationUtil.createComponent("modifiers.error.incrementnotmax").setStyle(Style.EMPTY.withColor(TextFormatting.RED)));
+                addButton.disable(TranslationUtil.createComponent("modifiers.error.incrementnotmax").setStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
                 addChild(new ModPreviewWidget(addButton.x + addButton.getWidth() + 2, 50, ItemStack.EMPTY, parent));
             } else {
                 Blueprint copy = blueprint.clone();
@@ -153,11 +157,11 @@ public class ModifierPanel extends PlannerPanel{
             ModLevelButton subtractButton = new ModLevelButton(2 + 50 - arrowOffset - 18, 50, -1, parent);
             ValidatedResult validatedResultSubtract = ToolValidator.validateModRemoval(blueprint, tool, selectedModifier);
             if (validatedResultSubtract.hasError()) {
-                subtractButton.disable(((IFormattableTextComponent) validatedResultSubtract.getMessage()).setStyle(Style.EMPTY.withColor(TextFormatting.RED)));
+                subtractButton.disable(((MutableComponent) validatedResultSubtract.getMessage()).setStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
             }
             addChild(new ModPreviewWidget(subtractButton.x - 2 - 18, 50, subtractButton.isDisabled() ? ItemStack.EMPTY : validatedResultSubtract.getResult(), parent));
             addChild(subtractButton);
-            int perLevel = ModifierRecipeLookup.getNeededPerLevel(modifier);
+            int perLevel = ModifierRecipeLookup.getNeededPerLevel(modifier.getId());
             if (perLevel > 0 && blueprint.modStack.getLevel(modifier) > 0) {
                 addChild(new SliderWidget(2 + 10, 70, 80, 20, val -> {
                     blueprint.modStack.setIncrementalDiff(modifier, perLevel - val);
@@ -173,21 +177,21 @@ public class ModifierPanel extends PlannerPanel{
     }
 
     private boolean handleCreativeSlotButton(SlotType type, int remainingSlots, int creativeSlots, int mb){
-        SoundHandler soundHandler = Minecraft.getInstance().getSoundManager();
+        SoundManager soundManager = Minecraft.getInstance().getSoundManager();
         if(mb == 0){
             parent.blueprint.addCreativeSlot(type);
             parent.refresh();
-            soundHandler.play(SimpleSound.forUI(SoundEvents.ANVIL_PLACE, 2f, 0.08f));
+            soundManager.play(SimpleSoundInstance.forUI(SoundEvents.ANVIL_PLACE, 2f, 0.08f));
             return true;
         }
         if(mb == 1){
             if(creativeSlots > 0 && remainingSlots > 0){
                 parent.blueprint.removeCreativeSlot(type);
                 parent.refresh();
-                soundHandler.play(SimpleSound.forUI(SoundEvents.UI_STONECUTTER_TAKE_RESULT, 2f, 0.08f));
+                soundManager.play(SimpleSoundInstance.forUI(SoundEvents.UI_STONECUTTER_TAKE_RESULT, 2f, 0.08f));
                 return true;
             }
-            soundHandler.play(SimpleSound.forUI(SoundEvents.BAMBOO_FALL, 2f, 0.08f));
+            soundManager.play(SimpleSoundInstance.forUI(SoundEvents.BAMBOO_FALL, 2f, 0.08f));
         }
         return false;
     }

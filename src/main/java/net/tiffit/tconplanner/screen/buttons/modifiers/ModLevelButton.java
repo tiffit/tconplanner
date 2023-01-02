@@ -1,31 +1,31 @@
 package net.tiffit.tconplanner.screen.buttons.modifiers;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.audio.SoundHandler;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.Style;
-import net.minecraft.util.text.TextFormatting;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.sounds.SoundManager;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.TextComponent;
 import net.tiffit.tconplanner.screen.PlannerScreen;
 import net.tiffit.tconplanner.util.ModifierStack;
 import net.tiffit.tconplanner.util.TranslationUtil;
 
-public class ModLevelButton  extends Button {
+public class ModLevelButton extends Button {
 
     private final PlannerScreen parent;
     private final int change;
     private boolean disabled = false;
-    private ITextComponent tooltip;
+    private Component tooltip;
 
     public ModLevelButton(int x, int y, int change, PlannerScreen parent) {
-        super(x, y, 18, 17, new StringTextComponent(""), e -> {});
+        super(x, y, 18, 17, new TextComponent(""), e -> {});
         this.parent = parent;
         this.change = change;
     }
 
-    public void disable(ITextComponent tooltip){
+    public void disable(Component tooltip){
         this.tooltip = tooltip;
         disabled = true;
     }
@@ -35,12 +35,12 @@ public class ModLevelButton  extends Button {
     }
 
     @Override
-    public void renderButton(MatrixStack stack, int mouseX, int mouseY, float p_230431_4_) {
+    public void renderButton(PoseStack stack, int mouseX, int mouseY, float p_230431_4_) {
         PlannerScreen.bindTexture();
         RenderSystem.enableBlend();
-        RenderSystem.color4f(1f, 1f, 1f, disabled ? 0.5f : 1f);
+        RenderSystem.setShaderColor(1f, 1f, 1f, disabled ? 0.5f : 1f);
         parent.blit(stack, x, y, change > 0 ? 176 : 194, disabled  ? 146 : 163, width, height);
-        if(isHovered()){
+        if(isHoveredOrFocused()){
             renderToolTip(stack, mouseX, mouseY);
         }
     }
@@ -57,16 +57,16 @@ public class ModLevelButton  extends Button {
     }
 
     @Override
-    public void renderToolTip(MatrixStack stack, int mouseX, int mouseY) {
+    public void renderToolTip(PoseStack stack, int mouseX, int mouseY) {
         if(disabled) {
             parent.postRenderTasks.add(() -> parent.renderTooltip(stack, tooltip, mouseX, mouseY));
         }else{
-            parent.postRenderTasks.add(() -> parent.renderTooltip(stack, TranslationUtil.createComponent(change < 0 ? "modifiers.removelevel" : "modifiers.addlevel").setStyle(Style.EMPTY.withColor(TextFormatting.GREEN)), mouseX, mouseY));
+            parent.postRenderTasks.add(() -> parent.renderTooltip(stack, TranslationUtil.createComponent(change < 0 ? "modifiers.removelevel" : "modifiers.addlevel").setStyle(Style.EMPTY.withColor(ChatFormatting.GREEN)), mouseX, mouseY));
         }
     }
 
     @Override
-    public void playDownSound(SoundHandler handler) {
+    public void playDownSound(SoundManager handler) {
         if(!disabled)super.playDownSound(handler);
     }
 }
