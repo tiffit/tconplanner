@@ -125,7 +125,7 @@ repositories {
 dependencies {
     minecraft 'net.minecraftforge:forge:1.16.5-36.2.20'
     implementation fg.deobf('curse.maven:mantle-74924:3631982')
-    implementation fg.deobf('curse.maven:tinkersconstruct-74072:3631989')
+    implementation fg.deobf('curse.maven:tinkersconstruct-74072:3695126')
     implementation fg.deobf('curse.maven:jei-238222:3519343')
 }
 
