@@ -8,13 +8,13 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -33,6 +33,8 @@ import slimeknights.tconstruct.library.tools.layout.StationSlotLayout;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
 import slimeknights.tconstruct.library.tools.part.IToolPart;
 import slimeknights.tconstruct.library.tools.part.ToolPartItem;
+import slimeknights.tconstruct.tables.block.ScorchedAnvilBlock;
+import slimeknights.tconstruct.tables.block.TinkersAnvilBlock;
 import slimeknights.tconstruct.tables.client.inventory.TinkerStationScreen;
 import slimeknights.tconstruct.tables.client.inventory.widget.SlotButtonItem;
 import slimeknights.tconstruct.tables.client.inventory.widget.TinkerStationButtonsWidget;
@@ -87,11 +89,10 @@ public class EventListener {
             updateLayout(screen, true);
             forceNextUpdate = true;
             int x = screen.cornerX + Config.CONFIG.buttonX.get(), y = screen.cornerY + Config.CONFIG.buttonY.get();
-            e.addListener(new ExtIconButton(x, y, plannerIcon, TranslationUtil.createComponent("plannerbutton"), action -> {
-                mc.setScreen(new PlannerScreen(screen));
-            }, screen));
+            e.addListener(new ExtIconButton(x, y, plannerIcon, TranslationUtil.createComponent("plannerbutton"), action -> mc.setScreen(new PlannerScreen(screen)), screen));
 
-            boolean isAnvil = Objects.equals(screen.getTileEntity().getBlockState().getBlock().getRegistryName(), new ResourceLocation("tconstruct:tinkers_anvil"));
+            Block stationBlock = Objects.requireNonNull(screen.getTileEntity()).getBlockState().getBlock();
+            boolean isAnvil = stationBlock instanceof ScorchedAnvilBlock || stationBlock instanceof TinkersAnvilBlock;
             int importX = screen.cornerX, importY = screen.cornerY;
             importX += (isAnvil ? Config.CONFIG.importButtonXAnvil : Config.CONFIG.importButtonXStation).get();
             importY += (isAnvil ? Config.CONFIG.importButtonYAnvil : Config.CONFIG.importButtonYStation).get();
