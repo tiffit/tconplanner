@@ -12,7 +12,7 @@ import net.tiffit.tconplanner.screen.buttons.*;
 import net.tiffit.tconplanner.screen.buttons.modifiers.*;
 import net.tiffit.tconplanner.util.*;
 import slimeknights.tconstruct.TConstruct;
-import slimeknights.tconstruct.common.SoundUtils;
+import slimeknights.tconstruct.library.modifiers.DurabilityShieldModifier;
 import slimeknights.tconstruct.library.modifiers.Modifier;
 import slimeknights.tconstruct.library.modifiers.ModifierId;
 import slimeknights.tconstruct.library.modifiers.SingleUseModifier;
@@ -135,7 +135,7 @@ public class ModifierPanel extends PlannerPanel{
             addChild(new ModPreviewWidget(2 + 50 - 9, 50, result, parent));
             int arrowOffset = 11;
             ModLevelButton addButton = new ModLevelButton(2 + 50 + arrowOffset - 2, 50, 1, parent);
-            ValidatedResult validatedResultAdd = modifier instanceof SingleUseModifier && tool.getModifierLevel(modifier) >= 1 ?
+            ValidatedResult validatedResultAdd = (modifier instanceof SingleUseModifier || modifier instanceof DurabilityShieldModifier) && tool.getModifierLevel(modifier) >= 1 ?
                     ValidatedResult.failure(KEY_MAX_LEVEL, modifier.getDisplayName(), 1) : tsrecipe.getValidatedResult(new DummyTinkersStationInventory(result));
             if (!validatedResultAdd.isSuccess()) {
                 addButton.disable(validatedResultAdd.getMessage().copy().setStyle(Style.EMPTY.withColor(TextFormatting.RED)));

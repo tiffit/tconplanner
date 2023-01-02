@@ -17,6 +17,7 @@ import net.tiffit.tconplanner.screen.PlannerScreen;
 import net.tiffit.tconplanner.util.DummyTinkersStationInventory;
 import net.tiffit.tconplanner.util.ModifierStateEnum;
 import net.tiffit.tconplanner.util.TranslationUtil;
+import slimeknights.tconstruct.library.modifiers.DurabilityShieldModifier;
 import slimeknights.tconstruct.library.modifiers.Modifier;
 import slimeknights.tconstruct.library.modifiers.SingleUseModifier;
 import slimeknights.tconstruct.library.recipe.modifiers.adding.IDisplayModifierRecipe;
@@ -55,7 +56,7 @@ public class ModifierSelectButton extends Button {
         List<List<ItemStack>> itemstacks = recipe.getDisplayItems();
         itemstacks.subList(1, itemstacks.size()).forEach(recipeStacks::addAll);
         displayName = level == 0 ? modifier.getDisplayName() : modifier.getDisplayName(level);
-        boolean singleUse = modifier instanceof SingleUseModifier;
+        boolean singleUse = modifier instanceof SingleUseModifier || modifier instanceof DurabilityShieldModifier;
         int maxLevel = singleUse ? 1 : recipe.getMaxLevel();
         int currentLevel = singleUse ? tool.getModifierLevel(modifier) : parent.blueprint.modStack.getLevel(modifier);
         if(currentLevel > maxLevel && maxLevel > 0)currentLevel = maxLevel;
@@ -157,7 +158,7 @@ public class ModifierSelectButton extends Button {
         ValidatedResult validatedResult = tsrecipe.getValidatedResult(new DummyTinkersStationInventory(stack));
         if(!validatedResult.isSuccess())error = validatedResult.getMessage();
         else {
-            if(currentLevel >= 1 && modifier instanceof SingleUseModifier){
+            if(currentLevel >= 1 && (modifier instanceof SingleUseModifier || modifier instanceof DurabilityShieldModifier)){
                 error = ValidatedResult.failure(ModifierPanel.KEY_MAX_LEVEL, modifier.getDisplayName(), 1).getMessage();
             }else{
                 if(mstate != ModifierStateEnum.APPLIED)mstate = ModifierStateEnum.AVAILABLE;
